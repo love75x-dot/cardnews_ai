@@ -9,7 +9,8 @@ import { cn } from '@/lib/utils';
 interface CanvasProps {
     cards: Array<{
         id: number;
-        text: string;
+        headline: string;  // Short text for image overlay
+        text: string;       // Script for property panel
         imagePrompt?: string;
         imageUrl?: string;
     }>;

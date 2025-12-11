@@ -15,7 +15,13 @@ const PROJECT_ID_STORAGE_KEY = 'gcp_project_id';
 export default function Home() {
   const { toast } = useToast();
   const [isLoading, setIsLoading] = useState(false);
-  const [cards, setCards] = useState<Array<{ id: number; text: string; imagePrompt?: string; imageUrl?: string }>>([]);
+  const [cards, setCards] = useState<Array<{
+    id: number;
+    headline: string;
+    text: string;
+    imagePrompt?: string;
+    imageUrl?: string
+  }>>([]);
   const [apiKey, setApiKey] = useState('');
   const [projectId, setProjectId] = useState('');
   const [isSettingsOpen, setIsSettingsOpen] = useState(false);
@@ -145,7 +151,7 @@ export default function Home() {
         apiKey,
         projectId,
         'us-central1',
-        resolution,
+        resolution as '2k' | '4k',
         refImages
       );
 
@@ -156,7 +162,8 @@ export default function Home() {
       setProgressStage(3);
       const newCards = generatedContent.map((content, index) => ({
         id: content.page,
-        text: content.script,
+        headline: content.headline,  // Short impactful text for image
+        text: content.script,         // Detailed script for property panel
         imagePrompt: content.imagePrompt,
         imageUrl: imageResults[index].url,
       }));
