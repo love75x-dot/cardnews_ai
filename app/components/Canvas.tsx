@@ -105,7 +105,7 @@ export function Canvas({ cards, onSettingsClick, topic = '카드뉴스' }: Canva
                             {cards.map((card, index) => (
                                 <div
                                     key={card.id}
-                                    ref={(el) => cardRefs.current[index] = el}
+                                    ref={(el) => { cardRefs.current[index] = el; }}
                                     className="relative aspect-square rounded-xl overflow-hidden shadow-2xl group hover:shadow-purple-500/20 transition-all duration-300"
                                 >
                                     {/* Background Image */}
