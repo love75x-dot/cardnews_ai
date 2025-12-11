@@ -6,7 +6,8 @@ import { Input } from '@/components/ui/input';
 import { Button } from '@/components/ui/button';
 import { Label } from '@/components/ui/label';
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from '@/components/ui/select';
-import { Loader2, RotateCcw, Maximize2 } from 'lucide-react';
+import { Switch } from '@/components/ui/switch';
+import { Loader2, RotateCcw, Maximize2, Wand2 } from 'lucide-react';
 
 interface LeftSidebarProps {
     onGenerate: () => void;
@@ -30,12 +31,18 @@ export function LeftSidebar({
     onAspectRatioChange,
 }: LeftSidebarProps) {
     const characterCount = topic.length;
+    const [resolution, setResolution] = useState('2k');
+    const [artStyle, setArtStyle] = useState('modern');
+    const [sequentialMode, setSequentialMode] = useState(false);
 
     const handleReset = () => {
         if (confirm('모든 입력 내용을 초기화하시겠습니까?')) {
             onTopicChange('');
             onSceneCountChange(4);
             onAspectRatioChange('1:1');
+            setResolution('2k');
+            setArtStyle('modern');
+            setSequentialMode(false);
         }
     };
 
@@ -87,54 +94,119 @@ export function LeftSidebar({
                     </div>
                 </div>
 
-                {/* Scene Count */}
-                <div className="space-y-2">
-                    <Label htmlFor="scene-count" className="text-sm font-medium text-gray-300">
-                        2. 장면 수
-                    </Label>
-                    <Input
-                        id="scene-count"
-                        type="number"
-                        min="1"
-                        max="10"
-                        value={sceneCount}
-                        onChange={(e) => onSceneCountChange(parseInt(e.target.value) || 1)}
-                        className="bg-[#1a1b26] border-[#27272a] text-white"
-                    />
+                {/* Generation Settings Section */}
+                <div className="space-y-4">
+                    <h2 className="text-base font-bold text-blue-500">2. ⚙️ 생성 설정</h2>
+
+                    {/* Scene Count */}
+                    <div className="space-y-2">
+                        <Label htmlFor="scene-count" className="text-sm font-medium text-gray-300">
+                            장면 수
+                        </Label>
+                        <Input
+                            id="scene-count"
+                            type="number"
+                            min="1"
+                            max="10"
+                            value={sceneCount}
+                            onChange={(e) => onSceneCountChange(parseInt(e.target.value) || 1)}
+                            className="bg-slate-800 border-slate-700 text-white"
+                        />
+                    </div>
+
+                    {/* Aspect Ratio & Resolution - 2 Column Grid */}
+                    <div className="grid grid-cols-2 gap-3">
+                        {/* Aspect Ratio */}
+                        <div className="space-y-2">
+                            <Label htmlFor="aspect-ratio" className="text-sm font-medium text-gray-300">
+                                비율
+                            </Label>
+                            <Select value={aspectRatio} onValueChange={onAspectRatioChange}>
+                                <SelectTrigger id="aspect-ratio" className="bg-slate-800 border-slate-700 text-white">
+                                    <SelectValue />
+                                </SelectTrigger>
+                                <SelectContent className="bg-[#1a1b26] border-[#27272a] text-white">
+                                    <SelectItem value="1:1">1:1 정사각</SelectItem>
+                                    <SelectItem value="9:16">9:16 세로</SelectItem>
+                                    <SelectItem value="16:9">16:9 가로</SelectItem>
+                                </SelectContent>
+                            </Select>
+                        </div>
+
+                        {/* Resolution */}
+                        <div className="space-y-2">
+                            <Label htmlFor="resolution" className="text-sm font-medium text-gray-300">
+                                해상도
+                            </Label>
+                            <Select value={resolution} onValueChange={setResolution}>
+                                <SelectTrigger id="resolution" className="bg-slate-800 border-slate-700 text-white">
+                                    <SelectValue />
+                                </SelectTrigger>
+                                <SelectContent className="bg-[#1a1b26] border-[#27272a] text-white">
+                                    <SelectItem value="2k">2K (기본)</SelectItem>
+                                    <SelectItem value="4k">4K (고화질)</SelectItem>
+                                </SelectContent>
+                            </Select>
+                        </div>
+                    </div>
                 </div>
 
-                {/* Aspect Ratio */}
-                <div className="space-y-2">
-                    <Label htmlFor="aspect-ratio" className="text-sm font-medium text-gray-300">
-                        3. 이미지 비율
-                    </Label>
-                    <Select value={aspectRatio} onValueChange={onAspectRatioChange}>
-                        <SelectTrigger id="aspect-ratio" className="bg-[#1a1b26] border-[#27272a] text-white">
-                            <SelectValue />
-                        </SelectTrigger>
-                        <SelectContent className="bg-[#1a1b26] border-[#27272a] text-white">
-                            <SelectItem value="1:1">1:1 (정사각형)</SelectItem>
-                            <SelectItem value="9:16">9:16 (세로)</SelectItem>
-                            <SelectItem value="16:9">16:9 (가로)</SelectItem>
-                        </SelectContent>
-                    </Select>
+                {/* Art Style & Mode Section */}
+                <div className="space-y-4">
+                    <h2 className="text-base font-bold text-blue-500">3. 🎨 아트 스타일 & 모드</h2>
+
+                    {/* Art Style */}
+                    <div className="space-y-2">
+                        <Label htmlFor="art-style" className="text-sm font-medium text-gray-300">
+                            아트 스타일
+                        </Label>
+                        <Select value={artStyle} onValueChange={setArtStyle}>
+                            <SelectTrigger id="art-style" className="bg-slate-800 border-slate-700 text-white">
+                                <SelectValue />
+                            </SelectTrigger>
+                            <SelectContent className="bg-[#1a1b26] border-[#27272a] text-white">
+                                <SelectItem value="modern">모던 미니멀</SelectItem>
+                                <SelectItem value="flat">플랫 디자인</SelectItem>
+                                <SelectItem value="3d">3D 렌더</SelectItem>
+                                <SelectItem value="watercolor">수채화</SelectItem>
+                                <SelectItem value="illustration">일러스트</SelectItem>
+                            </SelectContent>
+                        </Select>
+                    </div>
+
+                    {/* Generation Mode Toggle */}
+                    <div className="flex items-center justify-between p-3 bg-slate-800 rounded-lg">
+                        <div className="flex-1">
+                            <Label htmlFor="sequential-mode" className="text-sm font-medium text-gray-300 cursor-pointer">
+                                생성 모드
+                            </Label>
+                            <p className="text-xs text-gray-500 mt-0.5">
+                                {sequentialMode ? '순차 (안정적)' : '병렬 (빠름)'}
+                            </p>
+                        </div>
+                        <Switch
+                            id="sequential-mode"
+                            checked={sequentialMode}
+                            onCheckedChange={setSequentialMode}
+                        />
+                    </div>
                 </div>
 
-                {/* Art Style */}
-                <div className="space-y-2">
-                    <Label htmlFor="art-style" className="text-sm font-medium text-gray-300">
-                        4. 아트 스타일
-                    </Label>
-                    <Select defaultValue="modern">
-                        <SelectTrigger id="art-style" className="bg-[#1a1b26] border-[#27272a] text-white">
-                            <SelectValue />
-                        </SelectTrigger>
-                        <SelectContent className="bg-[#1a1b26] border-[#27272a] text-white">
-                            <SelectItem value="modern">모던 미니멀</SelectItem>
-                            <SelectItem value="flat">플랫 디자인</SelectItem>
-                            <SelectItem value="3d">3D 렌더</SelectItem>
-                        </SelectContent>
-                    </Select>
+                {/* AI Text Rendering Info Box */}
+                <div className="bg-purple-900/20 border border-purple-600 rounded-lg p-4">
+                    <div className="flex items-start gap-3">
+                        <div className="flex-shrink-0">
+                            <Wand2 className="w-5 h-5 text-purple-400" />
+                        </div>
+                        <div className="flex-1">
+                            <h3 className="text-sm font-semibold text-purple-400 mb-1">
+                                🔮 AI 텍스트 렌더링
+                            </h3>
+                            <p className="text-xs text-gray-300 leading-relaxed">
+                                Nano Banana Pro가 이미지 내 텍스트를 자동 생성합니다
+                            </p>
+                        </div>
+                    </div>
                 </div>
 
                 {/* Generate Button */}
