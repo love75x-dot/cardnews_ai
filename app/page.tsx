@@ -1,6 +1,6 @@
 'use client';
 
-import { useState, useEffect } from 'react';
+import { useState, useEffect, useRef } from 'react';
 import { LeftSidebar } from './components/LeftSidebar';
 import { Canvas } from './components/Canvas';
 import { ApiSettings } from './components/ApiSettings';
@@ -27,6 +27,18 @@ export default function Home() {
   const [sceneCount, setSceneCount] = useState(4);
   const [aspectRatio, setAspectRatio] = useState('1:1');
 
+  // Progress tracking
+  const [progressStage, setProgressStage] = useState(0);
+  const [elapsedTime, setElapsedTime] = useState(0);
+  const timerIntervalRef = useRef<NodeJS.Timeout | null>(null);
+
+  // Advanced parameters
+  const [resolution, setResolution] = useState('2k');
+  const [artStyle, setArtStyle] = useState('modern');
+  const [referenceEnabled, setReferenceEnabled] = useState(false);
+  const [referenceMode, setReferenceMode] = useState('style');
+  const [referenceImages, setReferenceImages] = useState<Array<{ id: string; url: string; file: File; base64?: string }>>([]);
+
   // Load API key and Project ID from localStorage on mount
   useEffect(() => {
     if (typeof window !== 'undefined') {
@@ -48,44 +60,100 @@ export default function Home() {
     }
   }, [cards]);
 
+  // Timer functions
+  const startTimer = () => {
+    setElapsedTime(0);
+    if (timerIntervalRef.current) {
+      clearInterval(timerIntervalRef.current);
+    }
+    timerIntervalRef.current = setInterval(() => {
+      setElapsedTime(prev => prev + 1);
+    }, 1000);
+  };
+
+  const stopTimer = () => {
+    if (timerIntervalRef.current) {
+      clearInterval(timerIntervalRef.current);
+      timerIntervalRef.current = null;
+    }
+  };
+
+  // Cleanup timer on unmount
+  useEffect(() => {
+    return () => {
+      if (timerIntervalRef.current) {
+        clearInterval(timerIntervalRef.current);
+      }
+    };
+  }, []);
+
   const handleGenerate = async () => {
     // Check if API key is set
     if (!apiKey) {
-      alert('API 키를 먼저 설정해주세요');
+      toast({
+        title: "❌ API 키 필요",
+        description: "API 키를 먼저 설정해주세요",
+        variant: "destructive",
+      });
       setIsSettingsOpen(true);
       return;
     }
 
     // Check if topic is provided
     if (!topic.trim()) {
-      alert('주제를 입력해주세요');
+      toast({
+        title: "❌ 주제 입력 필요",
+        description: "주제를 입력해주세요",
+        variant: "destructive",
+      });
       return;
     }
 
     setIsLoading(true);
+    startTimer();
     let hadFallback = false;
 
     try {
-      // Step 1: Generate card news content with Gemini API
+      // Stage 1: Content Planning (0%)
+      setProgressStage(0);
       const generatedContent = await generateCardNewsContent(
         apiKey,
         topic,
         sceneCount
       );
 
-      // Step 2: Generate images with Imagen 3 (Vertex AI) or Pollinations fallback
+      // Stage 2: Image Generation Request (30%)
+      setProgressStage(1);
+      toast({
+        title: "🎨 이미지 생성 시작",
+        description: `${generatedContent.length}개 이미지를 ${resolution === '4k' ? '4K 고화질로' : '2K로'} 생성합니다`,
+      });
+
+      // Prepare reference images if enabled
+      const refImages = referenceEnabled && referenceImages.length > 0
+        ? referenceImages.map(img => ({
+          base64: img.base64 || '',
+          mode: referenceMode
+        }))
+        : undefined;
+
+      // Stage 3: Rendering (50%)
+      setProgressStage(2);
       const imageResults = await generateCardImages(
         generatedContent,
         aspectRatio,
         apiKey,
         projectId,
-        'us-central1' // Vertex AI location
+        'us-central1',
+        resolution,
+        refImages
       );
 
       // Check if any image used fallback
       hadFallback = imageResults.some(r => r.fallback);
 
-      // Step 3: Combine content with image URLs
+      // Stage 4: Text Overlay (80%)
+      setProgressStage(3);
       const newCards = generatedContent.map((content, index) => ({
         id: content.page,
         text: content.script,
@@ -93,13 +161,21 @@ export default function Home() {
         imageUrl: imageResults[index].url,
       }));
 
+      // Stage 5: Complete (100%)
+      setProgressStage(4);
       setCards(newCards);
+
+      // Show completion notification
+      toast({
+        title: "✅ 생성 완료!",
+        description: `${newCards.length}개의 카드가 ${elapsedTime}초 만에 생성되었습니다.`,
+      });
 
       // Show fallback notification if needed
       if (hadFallback) {
         toast({
-          title: "무료 모델로 생성됨",
-          description: "고급 모델 권한이 없어 무료 모델(Pollinations AI)로 생성되었습니다.",
+          title: "ℹ️ 무료 모델 사용",
+          description: "Imagen 3를 사용할 수 없어 Pollinations AI로 생성되었습니다.",
           variant: "default",
         });
       }
@@ -107,12 +183,32 @@ export default function Home() {
       console.error('Generation error:', error);
 
       if (error instanceof Error) {
-        alert(error.message);
+        // Check for timeout error
+        if (error.message.includes('지연')) {
+          toast({
+            title: "⏱️ 시간 초과",
+            description: error.message,
+            variant: "destructive",
+          });
+        } else {
+          toast({
+            title: "❌ 생성 실패",
+            description: error.message,
+            variant: "destructive",
+          });
+        }
       } else {
-        alert('카드뉴스 생성 중 오류가 발생했습니다.');
+        toast({
+          title: "❌ 생성 실패",
+          description: "카드뉴스 생성 중 오류가 발생했습니다.",
+          variant: "destructive",
+        });
       }
     } finally {
+      stopTimer();
       setIsLoading(false);
+      setProgressStage(0);
+      setElapsedTime(0);
     }
   };
 
@@ -133,6 +229,18 @@ export default function Home() {
         onSceneCountChange={setSceneCount}
         aspectRatio={aspectRatio}
         onAspectRatioChange={setAspectRatio}
+        progressStage={progressStage}
+        elapsedTime={elapsedTime}
+        resolution={resolution}
+        onResolutionChange={setResolution}
+        artStyle={artStyle}
+        onArtStyleChange={setArtStyle}
+        referenceEnabled={referenceEnabled}
+        onReferenceEnabledChange={setReferenceEnabled}
+        referenceMode={referenceMode}
+        onReferenceModeChange={setReferenceMode}
+        referenceImages={referenceImages}
+        onReferenceImagesChange={setReferenceImages}
       />
 
       {/* Main Canvas - 3-Panel Editor */}

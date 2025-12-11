@@ -1,6 +1,6 @@
 'use client';
 
-import React, { useState, useRef } from 'react';
+import React, { useRef } from 'react';
 import { Textarea } from '@/components/ui/textarea';
 import { Input } from '@/components/ui/input';
 import { Button } from '@/components/ui/button';
@@ -8,6 +8,7 @@ import { Label } from '@/components/ui/label';
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from '@/components/ui/select';
 import { Switch } from '@/components/ui/switch';
 import { Loader2, RotateCcw, Maximize2, Wand2, Upload, X } from 'lucide-react';
+import { ProgressBar } from './ProgressBar';
 
 interface LeftSidebarProps {
     onGenerate: () => void;
@@ -18,6 +19,20 @@ interface LeftSidebarProps {
     onSceneCountChange: (value: number) => void;
     aspectRatio: string;
     onAspectRatioChange: (value: string) => void;
+    // Progress tracking
+    progressStage?: number;
+    elapsedTime?: number;
+    // Advanced parameters
+    resolution: string;
+    onResolutionChange: (value: string) => void;
+    artStyle: string;
+    onArtStyleChange: (value: string) => void;
+    referenceEnabled: boolean;
+    onReferenceEnabledChange: (value: boolean) => void;
+    referenceMode: string;
+    onReferenceModeChange: (value: string) => void;
+    referenceImages: Array<{ id: string; url: string; file: File; base64?: string }>;
+    onReferenceImagesChange: (images: Array<{ id: string; url: string; file: File; base64?: string }>) => void;
 }
 
 export function LeftSidebar({
@@ -29,14 +44,20 @@ export function LeftSidebar({
     onSceneCountChange,
     aspectRatio,
     onAspectRatioChange,
+    progressStage = 0,
+    elapsedTime = 0,
+    resolution,
+    onResolutionChange,
+    artStyle,
+    onArtStyleChange,
+    referenceEnabled,
+    onReferenceEnabledChange,
+    referenceMode,
+    onReferenceModeChange,
+    referenceImages,
+    onReferenceImagesChange,
 }: LeftSidebarProps) {
     const characterCount = topic.length;
-    const [resolution, setResolution] = useState('2k');
-    const [artStyle, setArtStyle] = useState('modern');
-    const [sequentialMode, setSequentialMode] = useState(false);
-    const [referenceEnabled, setReferenceEnabled] = useState(false);
-    const [referenceMode, setReferenceMode] = useState('style');
-    const [referenceImages, setReferenceImages] = useState<Array<{ id: string; url: string; file: File }>>([]);
     const fileInputRef = useRef<HTMLInputElement>(null);
 
     const handleReset = () => {
@@ -44,36 +65,53 @@ export function LeftSidebar({
             onTopicChange('');
             onSceneCountChange(4);
             onAspectRatioChange('1:1');
-            setResolution('2k');
-            setArtStyle('modern');
-            setSequentialMode(false);
-            setReferenceEnabled(false);
-            setReferenceMode('style');
-            setReferenceImages([]);
+            onResolutionChange('2k');
+            onArtStyleChange('modern');
+            onReferenceEnabledChange(false);
+            onReferenceModeChange('style');
+            onReferenceImagesChange([]);
         }
     };
 
-    const handleImageUpload = (e: React.ChangeEvent<HTMLInputElement>) => {
+    const convertToBase64 = (file: File): Promise<string> => {
+        return new Promise((resolve, reject) => {
+            const reader = new FileReader();
+            reader.onload = () => {
+                const base64 = (reader.result as string).split(',')[1];
+                resolve(base64);
+            };
+            reader.onerror = reject;
+            reader.readAsDataURL(file);
+        });
+    };
+
+    const handleImageUpload = async (e: React.ChangeEvent<HTMLInputElement>) => {
         const files = e.target.files;
         if (!files) return;
 
-        const newImages = Array.from(files).slice(0, 14 - referenceImages.length).map(file => ({
-            id: Math.random().toString(36).substr(2, 9),
-            url: URL.createObjectURL(file),
-            file
-        }));
+        try {
+            const fileArray = Array.from(files).slice(0, 14 - referenceImages.length);
+            const newImages = await Promise.all(
+                fileArray.map(async (file) => ({
+                    id: Math.random().toString(36).substr(2, 9),
+                    url: URL.createObjectURL(file),
+                    file,
+                    base64: await convertToBase64(file)
+                }))
+            );
 
-        setReferenceImages(prev => [...prev, ...newImages].slice(0, 14));
+            onReferenceImagesChange([...referenceImages, ...newImages].slice(0, 14));
+        } catch (error) {
+            console.error('Image upload error:', error);
+        }
     };
 
     const handleRemoveImage = (id: string) => {
-        setReferenceImages(prev => {
-            const image = prev.find(img => img.id === id);
-            if (image) {
-                URL.revokeObjectURL(image.url);
-            }
-            return prev.filter(img => img.id !== id);
-        });
+        const image = referenceImages.find(img => img.id === id);
+        if (image) {
+            URL.revokeObjectURL(image.url);
+        }
+        onReferenceImagesChange(referenceImages.filter(img => img.id !== id));
     };
 
     const handleUploadClick = () => {
@@ -172,7 +210,7 @@ export function LeftSidebar({
                             <Label htmlFor="resolution" className="text-sm font-medium text-gray-300">
                                 해상도
                             </Label>
-                            <Select value={resolution} onValueChange={setResolution}>
+                            <Select value={resolution} onValueChange={onResolutionChange}>
                                 <SelectTrigger id="resolution" className="bg-slate-800 border-slate-700 text-white">
                                     <SelectValue />
                                 </SelectTrigger>
@@ -185,16 +223,16 @@ export function LeftSidebar({
                     </div>
                 </div>
 
-                {/* Art Style & Mode Section */}
+                {/* Art Style Section */}
                 <div className="space-y-4">
-                    <h2 className="text-base font-bold text-blue-500">3. 🎨 아트 스타일 & 모드</h2>
+                    <h2 className="text-base font-bold text-blue-500">3. 🎨 아트 스타일</h2>
 
                     {/* Art Style */}
                     <div className="space-y-2">
                         <Label htmlFor="art-style" className="text-sm font-medium text-gray-300">
-                            아트 스타일
+                            스타일 선택
                         </Label>
-                        <Select value={artStyle} onValueChange={setArtStyle}>
+                        <Select value={artStyle} onValueChange={onArtStyleChange}>
                             <SelectTrigger id="art-style" className="bg-slate-800 border-slate-700 text-white">
                                 <SelectValue />
                             </SelectTrigger>
@@ -206,23 +244,6 @@ export function LeftSidebar({
                                 <SelectItem value="illustration">일러스트</SelectItem>
                             </SelectContent>
                         </Select>
-                    </div>
-
-                    {/* Generation Mode Toggle */}
-                    <div className="flex items-center justify-between p-3 bg-slate-800 rounded-lg">
-                        <div className="flex-1">
-                            <Label htmlFor="sequential-mode" className="text-sm font-medium text-gray-300 cursor-pointer">
-                                생성 모드
-                            </Label>
-                            <p className="text-xs text-gray-500 mt-0.5">
-                                {sequentialMode ? '순차 (안정적)' : '병렬 (빠름)'}
-                            </p>
-                        </div>
-                        <Switch
-                            id="sequential-mode"
-                            checked={sequentialMode}
-                            onCheckedChange={setSequentialMode}
-                        />
                     </div>
                 </div>
 
@@ -251,7 +272,7 @@ export function LeftSidebar({
                         <Switch
                             id="reference-toggle"
                             checked={referenceEnabled}
-                            onCheckedChange={setReferenceEnabled}
+                            onCheckedChange={onReferenceEnabledChange}
                             className="data-[state=checked]:bg-green-600"
                         />
                     </div>
@@ -264,7 +285,7 @@ export function LeftSidebar({
                                 <Label htmlFor="reference-mode" className="text-sm font-medium text-gray-300">
                                     참조 모드
                                 </Label>
-                                <Select value={referenceMode} onValueChange={setReferenceMode}>
+                                <Select value={referenceMode} onValueChange={onReferenceModeChange}>
                                     <SelectTrigger id="reference-mode" className="bg-slate-800 border-slate-700 text-white">
                                         <SelectValue />
                                     </SelectTrigger>
@@ -319,6 +340,14 @@ export function LeftSidebar({
                         </div>
                     )}
                 </div>
+
+                {/* Progress Bar (shown when loading) */}
+                {isLoading && (
+                    <ProgressBar
+                        stage={progressStage}
+                        elapsedTime={elapsedTime}
+                    />
+                )}
 
                 {/* Generate Button */}
                 <Button

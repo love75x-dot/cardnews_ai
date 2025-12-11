@@ -1,7 +1,6 @@
 /**
  * Image Generation with Google Imagen 3 (Vertex AI)
- * 
- * Requires: Billing enabled Google Cloud project
+ * With 30s timeout, resolution support, and reference images
  */
 
 import { VertexAI } from '@google-cloud/vertexai';
@@ -12,11 +11,30 @@ export interface ImageGenerationOptions {
     apiKey?: string;
     projectId?: string;
     location?: string;
+    resolution?: '2k' | '4k';
+    referenceImages?: Array<{ base64: string; mode: string }>;
 }
 
 export interface ImageResult {
     url: string;
     fallback: boolean;
+}
+
+/**
+ * Timeout wrapper - rejects if promise takes longer than timeoutMs
+ */
+async function withTimeout<T>(
+    promise: Promise<T>,
+    timeoutMs: number = 30000,
+    errorMessage: string = '죄송합니다. Google 클라우드 응답이 지연되고 있습니다. 잠시 후 다시 시도해주세요.'
+): Promise<T> {
+    const timeout = new Promise<never>((_, reject) => {
+        setTimeout(() => {
+            reject(new Error(errorMessage));
+        }, timeoutMs);
+    });
+
+    return Promise.race([promise, timeout]);
 }
 
 /**
@@ -52,14 +70,51 @@ function convertAspectRatio(ratio: string): string {
 }
 
 /**
+ * Enhance prompt with resolution keywords
+ */
+function enhancePromptWithResolution(prompt: string, resolution: '2k' | '4k'): string {
+    if (resolution === '4k') {
+        return `${prompt}, (4k, high resolution:1.5, ultra detailed, sharp focus, crystal clear)`;
+    }
+    return prompt; // 2k is default, no enhancement needed
+}
+
+/**
+ * Generate image using Pollinations AI (Free fallback)
+ */
+async function generatePollinationsImage(
+    prompt: string,
+    aspectRatio: string,
+    resolution: '2k' | '4k' = '2k'
+): Promise<string> {
+    const [width, height] = getAspectRatioDimensions(aspectRatio);
+
+    // Apply resolution multiplier for 4k
+    const scale = resolution === '4k' ? 2 : 1;
+    const finalWidth = width * scale;
+    const finalHeight = height * scale;
+
+    const pollinationsUrl = new URL('https://image.pollinations.ai/prompt');
+    pollinationsUrl.pathname = `/prompt/${encodeURIComponent(prompt)}`;
+    pollinationsUrl.searchParams.set('width', finalWidth.toString());
+    pollinationsUrl.searchParams.set('height', finalHeight.toString());
+    pollinationsUrl.searchParams.set('nologo', 'true');
+    pollinationsUrl.searchParams.set('enhance', 'true');
+
+    return pollinationsUrl.toString();
+}
+
+/**
  * Generate image using Google Imagen 3 (Vertex AI)
  */
 async function generateImagenImage(
     prompt: string,
     aspectRatio: string,
     apiKey: string,
-    projectId: string = 'your-project-id',
-    location: string = 'us-central1'
+    projectId: string,
+    location: string,
+    resolution: '2k' | '4k',
+    referenceImages?: Array<{ base64: string; mode: string }>
 ): Promise<string> {
     try {
         // Initialize Vertex AI
@@ -74,19 +129,37 @@ async function generateImagenImage(
         });
 
         const imagenRatio = convertAspectRatio(aspectRatio);
+        const enhancedPrompt = enhancePromptWithResolution(prompt, resolution);
 
-        // Generate image
-        const request = {
-            prompt: prompt,
+        console.log('🎨 Generating with Imagen 3...');
+        console.log('Prompt:', enhancedPrompt);
+        console.log('Aspect Ratio:', imagenRatio);
+        console.log('Resolution:', resolution);
+
+        // Build request
+        const request: any = {
+            prompt: enhancedPrompt,
             aspectRatio: imagenRatio,
             numberOfImages: 1,
-            // Optional parameters
-            // sampleCount: 1,
         };
 
-        console.log('🎨 Generating with Imagen 3...', request);
+        // Add reference images if provided
+        if (referenceImages && referenceImages.length > 0) {
+            console.log(`Adding ${referenceImages.length} reference images`);
+            request.imageInputs = referenceImages.map(img => ({
+                image: {
+                    bytesBase64Encoded: img.base64
+                },
+                mode: img.mode
+            }));
+        }
 
-        const result = await generativeModel.generateContent(request);
+        // Generate with timeout
+        const result = await withTimeout(
+            generativeModel.generateContent(request),
+            30000,
+            '죄송합니다. Google Imagen 3 응답이 지연되고 있습니다. 잠시 후 다시 시도해주세요.'
+        );
 
         // Extract image from response
         if (result.response?.candidates?.[0]?.content?.parts?.[0]) {
@@ -96,11 +169,13 @@ async function generateImagenImage(
             if (part.inlineData) {
                 const base64Data = part.inlineData.data;
                 const mimeType = part.inlineData.mimeType || 'image/png';
+                console.log('✅ Imagen 3 generation successful');
                 return `data:${mimeType};base64,${base64Data}`;
             }
 
             // Check for file URI
             if (part.fileData?.fileUri) {
+                console.log('✅ Imagen 3 generation successful');
                 return part.fileData.fileUri;
             }
         }
@@ -110,31 +185,16 @@ async function generateImagenImage(
     } catch (error: any) {
         console.error('❌ Imagen 3 error:', error);
 
-        // Provide detailed error
+        // Re-throw timeout errors
+        if (error.message?.includes('지연')) {
+            throw error;
+        }
+
+        // For other errors, provide detailed message
         const errorMsg = error.message || 'Unknown error';
         const errorCode = error.code || error.status || 'UNKNOWN';
-
         throw new Error(`Imagen 3 실패 (${errorCode}): ${errorMsg}`);
     }
-}
-
-/**
- * Fallback: Generate image using Pollinations AI (free)
- */
-async function generatePollinationsImage(
-    prompt: string,
-    aspectRatio: string
-): Promise<string> {
-    const [width, height] = getAspectRatioDimensions(aspectRatio);
-
-    const pollinationsUrl = new URL('https://image.pollinations.ai/prompt');
-    pollinationsUrl.pathname = `/prompt/${encodeURIComponent(prompt)}`;
-    pollinationsUrl.searchParams.set('width', width.toString());
-    pollinationsUrl.searchParams.set('height', height.toString());
-    pollinationsUrl.searchParams.set('nologo', 'true');
-    pollinationsUrl.searchParams.set('enhance', 'true');
-
-    return pollinationsUrl.toString();
 }
 
 /**
@@ -144,9 +204,17 @@ async function generatePollinationsImage(
 export async function generateCardImage(
     options: ImageGenerationOptions
 ): Promise<ImageResult> {
-    const { prompt, aspectRatio = '1:1', apiKey, projectId, location } = options;
+    const {
+        prompt,
+        aspectRatio = '1:1',
+        apiKey,
+        projectId,
+        location = 'us-central1',
+        resolution = '2k',
+        referenceImages
+    } = options;
 
-    // Try Imagen 3 if API key is provided
+    // Try Imagen 3 if API key and project ID are provided
     if (apiKey && projectId) {
         try {
             console.log('🚀 Using Google Imagen 3 (Vertex AI)');
@@ -155,10 +223,10 @@ export async function generateCardImage(
                 aspectRatio,
                 apiKey,
                 projectId,
-                location
+                location,
+                resolution,
+                referenceImages
             );
-
-            console.log('✅ Imagen 3 generation successful');
 
             return {
                 url: imageUrl,
@@ -167,8 +235,17 @@ export async function generateCardImage(
         } catch (error) {
             console.warn('⚠️ Imagen 3 failed, falling back to Pollinations:', error);
 
-            // Fallback to Pollinations
-            const fallbackUrl = await generatePollinationsImage(prompt, aspectRatio);
+            // Don't fallback on timeout - throw error
+            if (error instanceof Error && error.message.includes('지연')) {
+                throw error;
+            }
+
+            // Fallback to Pollinations for other errors
+            const fallbackUrl = await generatePollinationsImage(
+                prompt,
+                aspectRatio,
+                resolution
+            );
             return {
                 url: fallbackUrl,
                 fallback: true
@@ -178,7 +255,7 @@ export async function generateCardImage(
 
     // Use Pollinations if no API key
     console.log('📦 Using Pollinations AI (free)');
-    const imageUrl = await generatePollinationsImage(prompt, aspectRatio);
+    const imageUrl = await generatePollinationsImage(prompt, aspectRatio, resolution);
     return {
         url: imageUrl,
         fallback: true
@@ -193,7 +270,9 @@ export async function generateCardImages(
     aspectRatio: string = '1:1',
     apiKey?: string,
     projectId?: string,
-    location?: string
+    location?: string,
+    resolution: '2k' | '4k' = '2k',
+    referenceImages?: Array<{ base64: string; mode: string }>
 ): Promise<ImageResult[]> {
     const imagePromises = cards.map((card) =>
         generateCardImage({
@@ -201,7 +280,9 @@ export async function generateCardImages(
             aspectRatio,
             apiKey,
             projectId,
-            location
+            location,
+            resolution,
+            referenceImages
         })
     );
 
