@@ -1,46 +1,118 @@
 'use client';
 
-import { useState } from 'react';
-import { Header } from './components/Header';
+import { useState, useEffect } from 'react';
 import { LeftSidebar } from './components/LeftSidebar';
 import { Canvas } from './components/Canvas';
-import { RightToolbar } from './components/RightToolbar';
+import { ApiSettings } from './components/ApiSettings';
+import { generateCardNewsContent } from '@/lib/gemini';
+import { generateCardImages } from '@/lib/imageGenerator';
+
+const API_KEY_STORAGE_KEY = 'gemini_api_key';
 
 export default function Home() {
   const [isLoading, setIsLoading] = useState(false);
-  const [cards, setCards] = useState<Array<{ id: number; text: string }>>([]);
+  const [cards, setCards] = useState<Array<{ id: number; text: string; imagePrompt?: string; imageUrl?: string }>>([]);
+  const [apiKey, setApiKey] = useState('');
+  const [isSettingsOpen, setIsSettingsOpen] = useState(false);
 
-  const handleGenerate = () => {
+  // Form state
+  const [topic, setTopic] = useState('');
+  const [sceneCount, setSceneCount] = useState(4);
+  const [aspectRatio, setAspectRatio] = useState('1:1');
+
+  // Load API key from localStorage on mount
+  useEffect(() => {
+    if (typeof window !== 'undefined') {
+      const savedKey = localStorage.getItem(API_KEY_STORAGE_KEY);
+      if (savedKey) {
+        setApiKey(savedKey);
+      }
+    }
+  }, []);
+
+  const handleGenerate = async () => {
+    // Check if API key is set
+    if (!apiKey) {
+      alert('API 키를 먼저 설정해주세요');
+      setIsSettingsOpen(true);
+      return;
+    }
+
+    // Check if topic is provided
+    if (!topic.trim()) {
+      alert('주제를 입력해주세요');
+      return;
+    }
+
     setIsLoading(true);
 
-    // Simulate 3-second generation
-    setTimeout(() => {
-      setCards([
-        { id: 1, text: '카드뉴스 제목: AI 기술의 미래' },
-        { id: 2, text: '인공지능이 바꾸는 세상' },
-        { id: 3, text: '챗봇부터 자율주행까지' },
-        { id: 4, text: '우리 삶 속의 AI 혁명' },
-      ]);
+    try {
+      // Step 1: Generate card news content with Gemini API
+      const generatedContent = await generateCardNewsContent(
+        apiKey,
+        topic,
+        sceneCount
+      );
+
+      // Step 2: Generate images for each card
+      const imageUrls = await generateCardImages(
+        generatedContent,
+        aspectRatio
+      );
+
+      // Step 3: Combine content with image URLs
+      const newCards = generatedContent.map((content, index) => ({
+        id: content.page,
+        text: content.script,
+        imagePrompt: content.imagePrompt,
+        imageUrl: imageUrls[index],
+      }));
+
+      setCards(newCards);
+    } catch (error) {
+      console.error('Generation error:', error);
+
+      if (error instanceof Error) {
+        alert(error.message);
+      } else {
+        alert('카드뉴스 생성 중 오류가 발생했습니다.');
+      }
+    } finally {
       setIsLoading(false);
-    }, 3000);
+    }
+  };
+
+  const handleApiKeySave = (key: string) => {
+    setApiKey(key);
   };
 
   return (
-    <div className="h-screen flex flex-col bg-[#0b0c15] text-white">
-      {/* Header */}
-      <Header />
+    <div className="h-screen flex bg-[#0b0c15] text-white overflow-hidden">
+      {/* Left Sidebar - Settings Panel */}
+      <LeftSidebar
+        onGenerate={handleGenerate}
+        isLoading={isLoading}
+        topic={topic}
+        onTopicChange={setTopic}
+        sceneCount={sceneCount}
+        onSceneCountChange={setSceneCount}
+        aspectRatio={aspectRatio}
+        onAspectRatioChange={setAspectRatio}
+      />
 
-      {/* Main content area with 3-column layout */}
-      <div className="flex-1 flex overflow-hidden">
-        {/* Left Sidebar - Settings Panel */}
-        <LeftSidebar onGenerate={handleGenerate} isLoading={isLoading} />
+      {/* Main Canvas - Result Viewer */}
+      <Canvas
+        cards={cards}
+        onSettingsClick={() => setIsSettingsOpen(true)}
+        topic={topic}
+      />
 
-        {/* Center Canvas - Main Workspace */}
-        <Canvas cards={cards} />
-
-        {/* Right Toolbar - Icon-based tools */}
-        <RightToolbar />
-      </div>
+      {/* API Settings Modal */}
+      <ApiSettings
+        open={isSettingsOpen}
+        onOpenChange={setIsSettingsOpen}
+        onSave={handleApiKeySave}
+      />
     </div>
   );
 }

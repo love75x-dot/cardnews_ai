@@ -1,11 +1,10 @@
 'use client';
 
-import React, { useState } from 'react';
+import React from 'react';
 import { Textarea } from '@/components/ui/textarea';
 import { Input } from '@/components/ui/input';
 import { Label } from '@/components/ui/label';
 import { Button } from '@/components/ui/button';
-import { Switch } from '@/components/ui/switch';
 import {
     Select,
     SelectContent,
@@ -18,154 +17,105 @@ import { Sparkles, Loader2 } from 'lucide-react';
 interface LeftSidebarProps {
     onGenerate: () => void;
     isLoading: boolean;
+    topic: string;
+    onTopicChange: (topic: string) => void;
+    sceneCount: number;
+    onSceneCountChange: (count: number) => void;
+    aspectRatio: string;
+    onAspectRatioChange: (ratio: string) => void;
 }
 
-export function LeftSidebar({ onGenerate, isLoading }: LeftSidebarProps) {
-    const [sceneCount, setSceneCount] = useState(8);
-    const [aspectRatio, setAspectRatio] = useState('1:1');
-    const [resolution, setResolution] = useState('2K');
-    const [artStyle, setArtStyle] = useState('modern-minimal');
-    const [generationMode, setGenerationMode] = useState(false);
-    const [referenceImage, setReferenceImage] = useState(false);
+export function LeftSidebar({
+    onGenerate,
+    isLoading,
+    topic,
+    onTopicChange,
+    sceneCount,
+    onSceneCountChange,
+    aspectRatio,
+    onAspectRatioChange
+}: LeftSidebarProps) {
+    const [artStyle, setArtStyle] = React.useState('modern-minimal');
 
     return (
-        <aside className="w-[360px] border-r border-[#27272a] flex flex-col bg-[#0b0c15]">
+        <aside className="w-[380px] border-r border-[#27272a] flex flex-col bg-[#0b0c15]">
+            {/* Title */}
+            <div className="p-6 border-b border-[#27272a]">
+                <h1 className="text-2xl font-bold text-white">AI 카드뉴스 생성기</h1>
+            </div>
+
             {/* Scrollable content area */}
             <div className="flex-1 overflow-y-auto p-6 space-y-6">
-                {/* 1. Main Textarea */}
+                {/* Topic Input */}
                 <div className="space-y-2">
-                    <Label className="text-sm text-gray-300">1. 주제 입력</Label>
+                    <Label className="text-sm text-gray-300">주제 입력</Label>
                     <Textarea
+                        value={topic}
+                        onChange={(e) => onTopicChange(e.target.value)}
                         placeholder="카드뉴스로 만들 주제나 대본을 입력하세요..."
                         className="min-h-[150px] bg-white/5 border-[#27272a] text-white placeholder:text-gray-500 resize-none focus-visible:ring-blue-500"
                     />
                 </div>
 
-                {/* 2. Generation Settings Header */}
-                <div>
-                    <h3 className="text-blue-400 font-semibold text-sm mb-4">2. 생성 설정</h3>
+                {/* Scene Count */}
+                <div className="space-y-2">
+                    <Label className="text-sm text-gray-300">장면 수</Label>
+                    <Input
+                        type="number"
+                        value={sceneCount}
+                        onChange={(e) => onSceneCountChange(Number(e.target.value))}
+                        className="bg-white/5 border-[#27272a] text-white focus-visible:ring-blue-500"
+                        min={1}
+                        max={10}
+                    />
+                </div>
 
-                    <div className="space-y-5">
-                        {/* Scene Count */}
-                        <div className="space-y-2">
-                            <Label className="text-sm text-gray-300">장면 수</Label>
-                            <Input
-                                type="number"
-                                value={sceneCount}
-                                onChange={(e) => setSceneCount(Number(e.target.value))}
-                                className="bg-white/5 border-[#27272a] text-white focus-visible:ring-blue-500"
-                                min={1}
-                                max={20}
-                            />
-                        </div>
+                {/* Aspect Ratio */}
+                <div className="space-y-2">
+                    <Label className="text-sm text-gray-300">이미지 비율</Label>
+                    <Select value={aspectRatio} onValueChange={onAspectRatioChange}>
+                        <SelectTrigger className="bg-white/5 border-[#27272a] text-white focus:ring-blue-500">
+                            <SelectValue />
+                        </SelectTrigger>
+                        <SelectContent className="bg-[#1a1b26] border-[#27272a]">
+                            <SelectItem value="1:1" className="text-white focus:bg-white/10 focus:text-white">
+                                1:1 정사각
+                            </SelectItem>
+                            <SelectItem value="9:16" className="text-white focus:bg-white/10 focus:text-white">
+                                9:16 세로형
+                            </SelectItem>
+                            <SelectItem value="16:9" className="text-white focus:bg-white/10 focus:text-white">
+                                16:9 가로형
+                            </SelectItem>
+                        </SelectContent>
+                    </Select>
+                </div>
 
-                        {/* Aspect Ratio & Resolution (side by side) */}
-                        <div className="grid grid-cols-2 gap-3">
-                            <div className="space-y-2">
-                                <Label className="text-sm text-gray-300">비율</Label>
-                                <Select value={aspectRatio} onValueChange={setAspectRatio}>
-                                    <SelectTrigger className="bg-white/5 border-[#27272a] text-white focus:ring-blue-500">
-                                        <SelectValue />
-                                    </SelectTrigger>
-                                    <SelectContent className="bg-[#1a1b26] border-[#27272a]">
-                                        <SelectItem value="1:1" className="text-white focus:bg-white/10 focus:text-white">
-                                            1:1 정사각
-                                        </SelectItem>
-                                        <SelectItem value="16:9" className="text-white focus:bg-white/10 focus:text-white">
-                                            16:9 가로
-                                        </SelectItem>
-                                        <SelectItem value="9:16" className="text-white focus:bg-white/10 focus:text-white">
-                                            9:16 세로
-                                        </SelectItem>
-                                        <SelectItem value="4:3" className="text-white focus:bg-white/10 focus:text-white">
-                                            4:3 표준
-                                        </SelectItem>
-                                    </SelectContent>
-                                </Select>
-                            </div>
-
-                            <div className="space-y-2">
-                                <Label className="text-sm text-gray-300">해상도</Label>
-                                <Select value={resolution} onValueChange={setResolution}>
-                                    <SelectTrigger className="bg-white/5 border-[#27272a] text-white focus:ring-blue-500">
-                                        <SelectValue />
-                                    </SelectTrigger>
-                                    <SelectContent className="bg-[#1a1b26] border-[#27272a]">
-                                        <SelectItem value="2K" className="text-white focus:bg-white/10 focus:text-white">
-                                            2K
-                                        </SelectItem>
-                                        <SelectItem value="4K" className="text-white focus:bg-white/10 focus:text-white">
-                                            4K
-                                        </SelectItem>
-                                        <SelectItem value="HD" className="text-white focus:bg-white/10 focus:text-white">
-                                            HD
-                                        </SelectItem>
-                                        <SelectItem value="FHD" className="text-white focus:bg-white/10 focus:text-white">
-                                            FHD
-                                        </SelectItem>
-                                    </SelectContent>
-                                </Select>
-                            </div>
-                        </div>
-
-                        {/* Art Style */}
-                        <div className="space-y-2">
-                            <Label className="text-sm text-gray-300">아트 스타일</Label>
-                            <Select value={artStyle} onValueChange={setArtStyle}>
-                                <SelectTrigger className="bg-white/5 border-[#27272a] text-white focus:ring-blue-500">
-                                    <SelectValue />
-                                </SelectTrigger>
-                                <SelectContent className="bg-[#1a1b26] border-[#27272a]">
-                                    <SelectItem value="modern-minimal" className="text-white focus:bg-white/10 focus:text-white">
-                                        모던 미니멀
-                                    </SelectItem>
-                                    <SelectItem value="vibrant" className="text-white focus:bg-white/10 focus:text-white">
-                                        생동감 있는
-                                    </SelectItem>
-                                    <SelectItem value="professional" className="text-white focus:bg-white/10 focus:text-white">
-                                        프로페셔널
-                                    </SelectItem>
-                                    <SelectItem value="playful" className="text-white focus:bg-white/10 focus:text-white">
-                                        경쾌한
-                                    </SelectItem>
-                                    <SelectItem value="elegant" className="text-white focus:bg-white/10 focus:text-white">
-                                        우아한
-                                    </SelectItem>
-                                </SelectContent>
-                            </Select>
-                        </div>
-
-                        {/* Toggle Switches */}
-                        <div className="space-y-4 pt-2">
-                            <div className="flex items-center justify-between">
-                                <div className="space-y-0.5">
-                                    <Label className="text-sm text-gray-300">생성 모드</Label>
-                                    <p className="text-xs text-gray-500">
-                                        {generationMode ? '순차 생성' : '안정적 생성'}
-                                    </p>
-                                </div>
-                                <Switch
-                                    checked={generationMode}
-                                    onCheckedChange={setGenerationMode}
-                                    className="data-[state=checked]:bg-blue-500"
-                                />
-                            </div>
-
-                            <div className="flex items-center justify-between">
-                                <div className="space-y-0.5">
-                                    <Label className="text-sm text-gray-300">참조 이미지</Label>
-                                    <p className="text-xs text-gray-500">
-                                        {referenceImage ? '사용' : '선택'}
-                                    </p>
-                                </div>
-                                <Switch
-                                    checked={referenceImage}
-                                    onCheckedChange={setReferenceImage}
-                                    className="data-[state=checked]:bg-blue-500"
-                                />
-                            </div>
-                        </div>
-                    </div>
+                {/* Art Style */}
+                <div className="space-y-2">
+                    <Label className="text-sm text-gray-300">아트 스타일</Label>
+                    <Select value={artStyle} onValueChange={setArtStyle}>
+                        <SelectTrigger className="bg-white/5 border-[#27272a] text-white focus:ring-blue-500">
+                            <SelectValue />
+                        </SelectTrigger>
+                        <SelectContent className="bg-[#1a1b26] border-[#27272a]">
+                            <SelectItem value="modern-minimal" className="text-white focus:bg-white/10 focus:text-white">
+                                모던 미니멀
+                            </SelectItem>
+                            <SelectItem value="watercolor" className="text-white focus:bg-white/10 focus:text-white">
+                                수채화
+                            </SelectItem>
+                            <SelectItem value="3d-render" className="text-white focus:bg-white/10 focus:text-white">
+                                3D 렌더링
+                            </SelectItem>
+                            <SelectItem value="illustration" className="text-white focus:bg-white/10 focus:text-white">
+                                일러스트
+                            </SelectItem>
+                            <SelectItem value="realistic" className="text-white focus:bg-white/10 focus:text-white">
+                                실사
+                            </SelectItem>
+                        </SelectContent>
+                    </Select>
                 </div>
             </div>
 
@@ -184,7 +134,7 @@ export function LeftSidebar({ onGenerate, isLoading }: LeftSidebarProps) {
                     ) : (
                         <>
                             <Sparkles className="w-5 h-5 mr-2" />
-                            장면 생성하기
+                            생성하기
                         </>
                     )}
                 </Button>
