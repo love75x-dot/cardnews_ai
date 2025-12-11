@@ -4,6 +4,7 @@ import { useState, useEffect } from 'react';
 import { LeftSidebar } from './components/LeftSidebar';
 import { Canvas } from './components/Canvas';
 import { ApiSettings } from './components/ApiSettings';
+import { ManualDialog } from './components/ManualDialog';
 import { generateCardNewsContent } from '@/lib/gemini';
 import { generateCardImages } from '@/lib/imageGenerator';
 
@@ -14,6 +15,7 @@ export default function Home() {
   const [cards, setCards] = useState<Array<{ id: number; text: string; imagePrompt?: string; imageUrl?: string }>>([]);
   const [apiKey, setApiKey] = useState('');
   const [isSettingsOpen, setIsSettingsOpen] = useState(false);
+  const [isManualOpen, setIsManualOpen] = useState(false);
 
   // Form state
   const [topic, setTopic] = useState('');
@@ -104,6 +106,7 @@ export default function Home() {
       <Canvas
         cards={cards}
         onSettingsClick={() => setIsSettingsOpen(true)}
+        onManualClick={() => setIsManualOpen(true)}
         topic={topic}
       />
 
@@ -112,6 +115,12 @@ export default function Home() {
         open={isSettingsOpen}
         onOpenChange={setIsSettingsOpen}
         onSave={handleApiKeySave}
+      />
+
+      {/* Manual Dialog */}
+      <ManualDialog
+        open={isManualOpen}
+        onOpenChange={setIsManualOpen}
       />
     </div>
   );
