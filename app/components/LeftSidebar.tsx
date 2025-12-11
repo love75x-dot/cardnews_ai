@@ -1,13 +1,13 @@
 'use client';
 
-import React, { useState } from 'react';
+import React, { useState, useRef } from 'react';
 import { Textarea } from '@/components/ui/textarea';
 import { Input } from '@/components/ui/input';
 import { Button } from '@/components/ui/button';
 import { Label } from '@/components/ui/label';
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from '@/components/ui/select';
 import { Switch } from '@/components/ui/switch';
-import { Loader2, RotateCcw, Maximize2, Wand2 } from 'lucide-react';
+import { Loader2, RotateCcw, Maximize2, Wand2, Upload, X } from 'lucide-react';
 
 interface LeftSidebarProps {
     onGenerate: () => void;
@@ -34,6 +34,10 @@ export function LeftSidebar({
     const [resolution, setResolution] = useState('2k');
     const [artStyle, setArtStyle] = useState('modern');
     const [sequentialMode, setSequentialMode] = useState(false);
+    const [referenceEnabled, setReferenceEnabled] = useState(false);
+    const [referenceMode, setReferenceMode] = useState('style');
+    const [referenceImages, setReferenceImages] = useState<Array<{ id: string; url: string; file: File }>>([]);
+    const fileInputRef = useRef<HTMLInputElement>(null);
 
     const handleReset = () => {
         if (confirm('모든 입력 내용을 초기화하시겠습니까?')) {
@@ -43,7 +47,37 @@ export function LeftSidebar({
             setResolution('2k');
             setArtStyle('modern');
             setSequentialMode(false);
+            setReferenceEnabled(false);
+            setReferenceMode('style');
+            setReferenceImages([]);
         }
+    };
+
+    const handleImageUpload = (e: React.ChangeEvent<HTMLInputElement>) => {
+        const files = e.target.files;
+        if (!files) return;
+
+        const newImages = Array.from(files).slice(0, 14 - referenceImages.length).map(file => ({
+            id: Math.random().toString(36).substr(2, 9),
+            url: URL.createObjectURL(file),
+            file
+        }));
+
+        setReferenceImages(prev => [...prev, ...newImages].slice(0, 14));
+    };
+
+    const handleRemoveImage = (id: string) => {
+        setReferenceImages(prev => {
+            const image = prev.find(img => img.id === id);
+            if (image) {
+                URL.revokeObjectURL(image.url);
+            }
+            return prev.filter(img => img.id !== id);
+        });
+    };
+
+    const handleUploadClick = () => {
+        fileInputRef.current?.click();
     };
 
     return (
@@ -207,6 +241,83 @@ export function LeftSidebar({
                             </p>
                         </div>
                     </div>
+                </div>
+
+                {/* Reference Image Section */}
+                <div className="space-y-3">
+                    {/* Header with Toggle */}
+                    <div className="flex items-center justify-between">
+                        <h2 className="text-base font-bold text-blue-500">4. 🖼️ 참조 이미지 (선택)</h2>
+                        <Switch
+                            id="reference-toggle"
+                            checked={referenceEnabled}
+                            onCheckedChange={setReferenceEnabled}
+                            className="data-[state=checked]:bg-green-600"
+                        />
+                    </div>
+
+                    {/* Reference Content (shown when enabled) */}
+                    {referenceEnabled && (
+                        <div className="bg-slate-800/50 rounded-lg p-4 space-y-4">
+                            {/* Reference Mode */}
+                            <div className="space-y-2">
+                                <Label htmlFor="reference-mode" className="text-sm font-medium text-gray-300">
+                                    참조 모드
+                                </Label>
+                                <Select value={referenceMode} onValueChange={setReferenceMode}>
+                                    <SelectTrigger id="reference-mode" className="bg-slate-800 border-slate-700 text-white">
+                                        <SelectValue />
+                                    </SelectTrigger>
+                                    <SelectContent className="bg-[#1a1b26] border-[#27272a] text-white">
+                                        <SelectItem value="style">스타일 전이</SelectItem>
+                                        <SelectItem value="character">캐릭터 일관성</SelectItem>
+                                        <SelectItem value="composition">구도 참조</SelectItem>
+                                    </SelectContent>
+                                </Select>
+                            </div>
+
+                            {/* Upload Button */}
+                            <input
+                                ref={fileInputRef}
+                                type="file"
+                                accept="image/*"
+                                multiple
+                                onChange={handleImageUpload}
+                                className="hidden"
+                            />
+                            <Button
+                                onClick={handleUploadClick}
+                                variant="outline"
+                                className="w-full border-green-600/50 text-green-500 bg-green-900/10 hover:bg-green-900/20 hover:text-green-400"
+                                disabled={referenceImages.length >= 14}
+                            >
+                                <Upload className="w-4 h-4 mr-2" />
+                                📤 이미지 선택 (최대 14개)
+                                {referenceImages.length > 0 && ` - ${referenceImages.length}/14`}
+                            </Button>
+
+                            {/* Thumbnail Preview */}
+                            {referenceImages.length > 0 && (
+                                <div className="grid grid-cols-4 gap-2">
+                                    {referenceImages.map((image) => (
+                                        <div key={image.id} className="relative aspect-square group">
+                                            <img
+                                                src={image.url}
+                                                alt="Reference"
+                                                className="w-full h-full object-cover rounded-lg border border-slate-700"
+                                            />
+                                            <button
+                                                onClick={() => handleRemoveImage(image.id)}
+                                                className="absolute -top-1 -right-1 w-5 h-5 bg-red-600 rounded-full flex items-center justify-center opacity-0 group-hover:opacity-100 transition-opacity"
+                                            >
+                                                <X className="w-3 h-3 text-white" />
+                                            </button>
+                                        </div>
+                                    ))}
+                                </div>
+                            )}
+                        </div>
+                    )}
                 </div>
 
                 {/* Generate Button */}
