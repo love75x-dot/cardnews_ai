@@ -124,7 +124,8 @@ export default function Home() {
       const generatedContent = await generateCardNewsContent(
         apiKey,
         topic,
-        sceneCount
+        sceneCount,
+        artStyle
       );
 
       // Stage 2: Image Generation Request (30%)

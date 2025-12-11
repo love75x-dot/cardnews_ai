@@ -8,9 +8,14 @@ export function Header() {
       </div>
 
       <div className="flex items-center gap-4">
-        {/* Model selection dropdown placeholder */}
-        <div className="px-4 py-2 bg-white/5 border border-[#27272a] rounded-md text-sm text-white">
-          고급 모드
+        {/* Model Information Display */}
+        <div className="flex items-center gap-3">
+          <div className="px-3 py-1.5 bg-blue-500/20 border border-blue-500/30 rounded-md text-xs text-blue-300">
+            <span className="font-semibold">텍스트:</span> Gemini 2.0 Flash
+          </div>
+          <div className="px-3 py-1.5 bg-purple-500/20 border border-purple-500/30 rounded-md text-xs text-purple-300">
+            <span className="font-semibold">이미지:</span> Imagen 3
+          </div>
         </div>
 
         {/* Right buttons placeholder */}

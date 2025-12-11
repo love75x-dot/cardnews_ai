@@ -12,16 +12,29 @@ export interface CardContent {
  * @param apiKey - Google Gemini API key
  * @param topic - Topic for the card news
  * @param sceneCount - Number of scenes/pages to generate
+ * @param artStyle - Art style selection
  * @returns Array of card content with headline, script and image prompts
  */
 export async function generateCardNewsContent(
     apiKey: string,
     topic: string,
-    sceneCount: number
+    sceneCount: number,
+    artStyle: string = 'modern'
 ): Promise<CardContent[]> {
     // Initialize Gemini API
     const genAI = new GoogleGenerativeAI(apiKey);
     const model = genAI.getGenerativeModel({ model: 'gemini-2.0-flash-exp' });
+
+    // Style definitions
+    const stylePrompts: { [key: string]: string } = {
+        modern: "Modern Minimalist Vector Art style with Flat Design Infographic, Soft pastel colors with clean white or gradient background",
+        flat: "Flat Design style with bold colors, simple shapes, 2D illustration with clean lines and geometric patterns",
+        '3d': "3D Rendered style with soft lighting, smooth surfaces, isometric perspective, modern 3D illustration",
+        watercolor: "Watercolor painting style with soft edges, flowing colors, artistic brush strokes, dreamy atmosphere",
+        illustration: "Hand-drawn illustration style with detailed line work, vibrant colors, artistic sketchy feel"
+    };
+
+    const selectedStyle = stylePrompts[artStyle] || stylePrompts['modern'];
 
     // Create prompt with headline/script separation
     const prompt = `당신은 카드뉴스 기획 전문가입니다.
@@ -43,11 +56,9 @@ export async function generateCardNewsContent(
    - 예시: "우리 몸의 체온이 1도만 낮아져도 면역력은 30%나 떨어진다는 사실, 알고 계셨나요? 체온 관리가 건강의 시작입니다."
 
 2. **이미지 스타일 강제 지침 (매우 중요):**
-   - 모든 이미지는 "Modern Minimalist Vector Art style"로 생성
-   - "Flat Design Infographic" 스타일 적용
-   - "Soft pastel colors with clean white or gradient background" 사용
+   - 선택된 스타일: ${selectedStyle}
    - "No text or letters in the image" (텍스트는 절대 포함하지 말 것)
-   - "Simple, clean, professional illustration"
+   - "Simple, clean, professional visualization"
    - 사진처럼 보이는 realistic/photorealistic style은 절대 사용하지 말 것
 
 3. 이미지는 시각적 요소(아이콘, 심볼, 일러스트)로만 구성
@@ -55,14 +66,13 @@ export async function generateCardNewsContent(
 
 주제: ${topic}
 장면 수: ${sceneCount}
+아트 스타일: ${selectedStyle}
 
 위 주제로 ${sceneCount}개의 카드뉴스 장면을 기획해주세요.
-각 장면의 imagePrompt는 반드시 다음 키워드를 모두 포함해야 합니다:
-- "Modern Minimalist Vector Art style"
-- "Flat Design Infographic"  
-- "Soft pastel colors with clean background"
-- "No text or letters"
-- "Simple illustration"
+각 장면의 imagePrompt는 반드시 다음을 포함해야 합니다:
+- 선택된 아트 스타일: "${selectedStyle}"
+- "No text or letters in the image"
+- "Professional quality"
 
 출력 형식 (JSON 배열만 응답):
 [
