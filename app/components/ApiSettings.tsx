@@ -53,15 +53,6 @@ export function ApiSettings({ open, onOpenChange, onSave }: ApiSettingsProps) {
             return;
         }
 
-        if (!projectId.trim()) {
-            toast({
-                title: "오류",
-                description: "GCP Project ID를 입력해주세요. Imagen 3 사용에 필수입니다.",
-                variant: "destructive",
-            });
-            return;
-        }
-
         localStorage.setItem(API_KEY_STORAGE_KEY, apiKey);
         localStorage.setItem(PROJECT_ID_STORAGE_KEY, projectId);
         onSave(apiKey, projectId);
@@ -69,7 +60,7 @@ export function ApiSettings({ open, onOpenChange, onSave }: ApiSettingsProps) {
 
         toast({
             title: "✅ 설정이 저장되었습니다",
-            description: "Vertex AI Imagen 3를 사용할 준비가 되었습니다. 생성 시 과금됩니다.",
+            description: "Google AI Imagen 3를 사용할 준비가 되었습니다. 생성 시 과금됩니다.",
         });
 
         onOpenChange(false);
@@ -185,7 +176,7 @@ export function ApiSettings({ open, onOpenChange, onSave }: ApiSettingsProps) {
                     {/* GCP Project ID Input */}
                     <div className="space-y-3">
                         <Label htmlFor="project-id" className="text-sm font-medium text-gray-200">
-                            🏗️ GCP Project ID (Imagen 3 필수)
+                            🏗️ GCP Project ID (선택사항)
                         </Label>
 
                         <Input
@@ -193,7 +184,7 @@ export function ApiSettings({ open, onOpenChange, onSave }: ApiSettingsProps) {
                             type="text"
                             value={projectId}
                             onChange={(e) => setProjectId(e.target.value)}
-                            placeholder="your-project-id"
+                            placeholder="your-project-id (optional)"
                             className="bg-slate-800 border-slate-700 text-white"
                         />
 
