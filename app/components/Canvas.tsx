@@ -13,10 +13,11 @@ interface CanvasProps {
         imageUrl?: string;
     }>;
     onSettingsClick: () => void;
+    onManualClick: () => void;
     topic?: string;
 }
 
-export function Canvas({ cards, onSettingsClick, topic = '카드뉴스' }: CanvasProps) {
+export function Canvas({ cards, onSettingsClick, onManualClick, topic = '카드뉴스' }: CanvasProps) {
     const hasCards = cards.length > 0;
     const cardRefs = useRef<(HTMLElement | null)[]>([]);
     const [isDownloading, setIsDownloading] = useState(false);
@@ -76,15 +77,25 @@ export function Canvas({ cards, onSettingsClick, topic = '카드뉴스' }: Canva
                     </Button>
                 )}
 
-                {/* Right: Settings Button */}
-                <Button
-                    onClick={onSettingsClick}
-                    variant="ghost"
-                    className="text-gray-300 hover:text-white hover:bg-white/5 ml-auto"
-                >
-                    <Settings className="w-4 h-4 mr-2" />
-                    ⚙️ 설정(API)
-                </Button>
+                {/* Right: Manual and Settings Buttons */}
+                <div className="flex items-center gap-2 ml-auto">
+                    <Button
+                        onClick={onManualClick}
+                        variant="ghost"
+                        className="text-gray-300 hover:text-white hover:bg-white/5"
+                    >
+                        📘 매뉴얼
+                    </Button>
+
+                    <Button
+                        onClick={onSettingsClick}
+                        variant="ghost"
+                        className="text-gray-300 hover:text-white hover:bg-white/5"
+                    >
+                        <Settings className="w-4 h-4 mr-2" />
+                        ⚙️ 설정(API)
+                    </Button>
+                </div>
             </div>
 
             {/* Main Content */}
