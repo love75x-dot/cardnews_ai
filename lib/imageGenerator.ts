@@ -141,14 +141,15 @@ function extractImageUrl(candidate: any): string | null {
 }
 
 /**
- * Generate images for multiple cards
+ * Generate images for multiple cards in parallel (much faster!)
  */
 export async function generateCardImages(
     cards: Array<{ imagePrompt: string }>,
     aspectRatio: string = '1:1',
     apiKey?: string
 ): Promise<ImageResult[]> {
-    const imagePromises = cards.map(card =>
+    // Create all image generation promises at once
+    const imagePromises = cards.map((card, index) =>
         generateCardImage({
             prompt: card.imagePrompt,
             aspectRatio,
@@ -156,5 +157,7 @@ export async function generateCardImages(
         })
     );
 
+    // Execute all promises in parallel using Promise.all
+    // This is MUCH faster than sequential generation
     return Promise.all(imagePromises);
 }
