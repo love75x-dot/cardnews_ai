@@ -1,5 +1,6 @@
 import type { Metadata } from "next";
 import "./globals.css";
+import { Toaster } from "@/components/ui/toaster";
 
 export const metadata: Metadata = {
   title: "AI 카드뉴스 메이커 - 쉽고 빠른 카드뉴스 제작 도구",
@@ -76,6 +77,7 @@ export default function RootLayout({
       </head>
       <body className="antialiased">
         {children}
+        <Toaster />
       </body>
     </html>
   );

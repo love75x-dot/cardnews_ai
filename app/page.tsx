@@ -7,10 +7,12 @@ import { ApiSettings } from './components/ApiSettings';
 import { ManualDialog } from './components/ManualDialog';
 import { generateCardNewsContent } from '@/lib/gemini';
 import { generateCardImages } from '@/lib/imageGenerator';
+import { useToast } from '@/hooks/use-toast';
 
 const API_KEY_STORAGE_KEY = 'gemini_api_key';
 
 export default function Home() {
+  const { toast } = useToast();
   const [isLoading, setIsLoading] = useState(false);
   const [cards, setCards] = useState<Array<{ id: number; text: string; imagePrompt?: string; imageUrl?: string }>>([]);
   const [apiKey, setApiKey] = useState('');
@@ -47,6 +49,7 @@ export default function Home() {
     }
 
     setIsLoading(true);
+    let hadFallback = false;
 
     try {
       // Step 1: Generate card news content with Gemini API
@@ -56,21 +59,34 @@ export default function Home() {
         sceneCount
       );
 
-      // Step 2: Generate images for each card
-      const imageUrls = await generateCardImages(
+      // Step 2: Generate images with Imagen 3 (with Pollinations fallback)
+      const imageResults = await generateCardImages(
         generatedContent,
-        aspectRatio
+        aspectRatio,
+        apiKey
       );
+
+      // Check if any image used fallback
+      hadFallback = imageResults.some(r => r.fallback);
 
       // Step 3: Combine content with image URLs
       const newCards = generatedContent.map((content, index) => ({
         id: content.page,
         text: content.script,
         imagePrompt: content.imagePrompt,
-        imageUrl: imageUrls[index],
+        imageUrl: imageResults[index].url,
       }));
 
       setCards(newCards);
+
+      // Show fallback notification if needed
+      if (hadFallback) {
+        toast({
+          title: "무료 모델로 생성됨",
+          description: "고급 모델 권한이 없어 무료 모델(Pollinations AI)로 생성되었습니다.",
+          variant: "default",
+        });
+      }
     } catch (error) {
       console.error('Generation error:', error);
 

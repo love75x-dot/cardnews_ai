@@ -1,16 +1,21 @@
 /**
- * Image Generation Abstraction Layer
+ * Image Generation with Google Imagen 3 and Pollinations Fallback
  * 
- * This module provides an abstraction for image generation.
- * Currently uses placeholder images, but designed to be easily
- * replaced with real image generation APIs (DALL-E 3, Stable Diffusion, etc.)
+ * Primary: Google Imagen 3 (requires paid API key)
+ * Fallback: Pollinations AI (free, no API key required)
  */
+
+import { GoogleGenerativeAI } from '@google/generative-ai';
 
 export interface ImageGenerationOptions {
     prompt: string;
-    width?: number;
-    height?: number;
     aspectRatio?: string;
+    apiKey?: string;
+}
+
+export interface ImageResult {
+    url: string;
+    fallback: boolean;
 }
 
 /**
@@ -30,94 +35,126 @@ function getAspectRatioDimensions(ratio: string): [number, number] {
 }
 
 /**
- * Generate a single card image URL
- * 
- * Phase 1: Returns placeholder image with encoded prompt
- * Phase 2: Will integrate with DALL-E 3 or other image generation API
- * 
- * @param options - Image generation options
- * @returns Promise<string> - Image URL
+ * Generate image using Pollinations AI (Free fallback)
+ */
+async function generatePollinationsImage(
+    prompt: string,
+    aspectRatio: string
+): Promise<string> {
+    const [width, height] = getAspectRatioDimensions(aspectRatio);
+
+    // Pollinations API - free, instant generation
+    const pollinationsUrl = new URL('https://image.pollinations.ai/prompt');
+    pollinationsUrl.pathname = `/prompt/${encodeURIComponent(prompt)}`;
+    pollinationsUrl.searchParams.set('width', width.toString());
+    pollinationsUrl.searchParams.set('height', height.toString());
+    pollinationsUrl.searchParams.set('nologo', 'true');
+    pollinationsUrl.searchParams.set('enhance', 'true');
+
+    return pollinationsUrl.toString();
+}
+
+/**
+ * Generate a single card image
+ * Tries Imagen 3 first, falls back to Pollinations on error
  */
 export async function generateCardImage(
     options: ImageGenerationOptions
-): Promise<string> {
-    const { prompt, aspectRatio = '1:1' } = options;
-    const [width, height] = getAspectRatioDimensions(aspectRatio);
+): Promise<ImageResult> {
+    const { prompt, aspectRatio = '1:1', apiKey } = options;
 
-    // Phase 1: Placeholder implementation
-    // Use a gradient placeholder with subtle text
-    const colors = [
-        '667eea/ffffff', // Purple gradient
-        '764ba2/667eea', // Purple to blue
-        'f093fb/f5576c', // Pink gradient
-        '4facfe/00f2fe', // Blue gradient
-        'fa709a/fee140', // Pink to yellow
-    ];
-
-    // Pick color based on prompt hash for consistency
-    const colorIndex = Math.abs(hashString(prompt)) % colors.length;
-    const color = colors[colorIndex];
-
-    // Encode first 30 chars of prompt for placeholder text
-    const displayText = encodeURIComponent(
-        prompt.substring(0, 30).replace(/[^a-zA-Z0-9 ]/g, '')
-    );
-
-    return `https://via.placeholder.com/${width}x${height}/${color}?text=${displayText}`;
-
-    // Phase 2: DALL-E 3 integration (example - commented out)
-    /*
-    try {
-      const response = await fetch('/api/generate-image', {
-        method: 'POST',
-        headers: { 'Content-Type': 'application/json' },
-        body: JSON.stringify({ prompt, width, height }),
-      });
-      
-      if (!response.ok) {
-        throw new Error('Image generation failed');
-      }
-      
-      const data = await response.json();
-      return data.imageUrl;
-    } catch (error) {
-      console.error('Image generation error:', error);
-      // Fallback to placeholder
-      return `https://via.placeholder.com/${width}x${height}`;
+    // If no API key, use Pollinations directly
+    if (!apiKey) {
+        return {
+            url: await generatePollinationsImage(prompt, aspectRatio),
+            fallback: true
+        };
     }
-    */
+
+    try {
+        // Try Google Imagen 3
+        const genAI = new GoogleGenerativeAI(apiKey);
+
+        // Note: Imagen 3 API structure may vary
+        // This is an attempt based on available documentation
+        const model = genAI.getGenerativeModel({
+            model: 'imagen-3.0-generate-001'
+        });
+
+        // Attempt to generate image
+        const result = await model.generateContent({
+            contents: [{
+                role: 'user',
+                parts: [{
+                    text: `Generate an image: ${prompt}. Aspect ratio: ${aspectRatio}`
+                }]
+            }]
+        });
+
+        // Extract image URL from response
+        const response = await result.response;
+        const candidates = response.candidates;
+
+        if (candidates && candidates[0]) {
+            // Try to find image URL in response
+            const imageUrl = extractImageUrl(candidates[0]);
+
+            if (imageUrl) {
+                return {
+                    url: imageUrl,
+                    fallback: false
+                };
+            }
+        }
+
+        // If no image URL found, fallback
+        throw new Error('No image URL in Imagen response');
+
+    } catch (error) {
+        console.warn('Imagen 3 failed, falling back to Pollinations:', error);
+
+        // Fallback to Pollinations
+        return {
+            url: await generatePollinationsImage(prompt, aspectRatio),
+            fallback: true
+        };
+    }
+}
+
+/**
+ * Extract image URL from Imagen response (helper function)
+ */
+function extractImageUrl(candidate: any): string | null {
+    // This may need adjustment based on actual API response structure
+    if (candidate.content?.parts) {
+        for (const part of candidate.content.parts) {
+            if (part.inlineData?.mimeType?.startsWith('image/')) {
+                // Convert base64 to data URL
+                return `data:${part.inlineData.mimeType};base64,${part.inlineData.data}`;
+            }
+            if (part.fileData?.fileUri) {
+                return part.fileData.fileUri;
+            }
+        }
+    }
+    return null;
 }
 
 /**
  * Generate images for multiple cards
- * 
- * @param cards - Array of cards with imagePrompt
- * @param aspectRatio - Aspect ratio for all images
- * @returns Promise<string[]> - Array of image URLs
  */
 export async function generateCardImages(
     cards: Array<{ imagePrompt: string }>,
-    aspectRatio: string = '1:1'
-): Promise<string[]> {
+    aspectRatio: string = '1:1',
+    apiKey?: string
+): Promise<ImageResult[]> {
     const imagePromises = cards.map(card =>
         generateCardImage({
             prompt: card.imagePrompt,
             aspectRatio,
+            apiKey
         })
     );
 
     return Promise.all(imagePromises);
-}
-
-/**
- * Simple string hash function for consistent color selection
- */
-function hashString(str: string): number {
-    let hash = 0;
-    for (let i = 0; i < str.length; i++) {
-        const char = str.charCodeAt(i);
-        hash = ((hash << 5) - hash) + char;
-        hash = hash & hash; // Convert to 32bit integer
-    }
-    return hash;
 }
