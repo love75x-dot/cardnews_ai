@@ -1,6 +1,6 @@
 /**
- * Image Generation with Google AI Imagen 3
- * Uses API Key authentication - no Service Account needed
+ * Image Generation with Vertex AI Imagen 3
+ * Requires Google Cloud Project ID and API Key
  * NO FREE FALLBACK - shows exact errors when API fails
  */
 
@@ -8,7 +8,7 @@ export interface ImageGenerationOptions {
     prompt: string;
     aspectRatio?: string;
     apiKey: string;  // Required
-    projectId?: string;  // Optional (not used with Google AI API)
+    projectId: string;  // Required - must be valid GCP Project ID
     location?: string;
     resolution?: '2k' | '4k';
 }
@@ -70,8 +70,8 @@ async function generateImagenImage(
 }
 
 /**
- * Generate a single card image using Google AI Imagen 3
- * NO FALLBACK - requires valid API key
+ * Generate a single card image using Vertex AI Imagen 3
+ * NO FALLBACK - requires valid API key and Project ID
  */
 export async function generateCardImage(
     options: ImageGenerationOptions
@@ -90,28 +90,33 @@ export async function generateCardImage(
         throw new Error('API Key가 필요합니다. 설정에서 입력해주세요.');
     }
 
-    console.log('🚀 Using Google AI Imagen 3 (API Key Authentication)');
-    console.log('⚠️ Google Cloud billing will be charged');
+    if (!projectId) {
+        throw new Error('Google Cloud Project ID가 필요합니다. 설정에서 입력해주세요.');
+    }
 
-    // Call Google AI - NO FALLBACK on error
+    console.log('🚀 Using Vertex AI Imagen 3');
+    console.log('⚠️ Google Cloud billing will be charged');
+    console.log('Project ID:', projectId);
+
+    // Call Vertex AI - NO FALLBACK on error
     const imageUrl = await generateImagenImage(
         prompt,
         aspectRatio,
         apiKey,
-        projectId || '',  // Pass empty string if not provided
+        projectId,
         location,
         resolution
     );
 
     return {
         url: imageUrl,
-        fallback: false  // Never fallback - always using Google AI
+        fallback: false  // Never fallback - always using Vertex AI
     };
 }
 
 /**
  * Generate images for multiple cards in parallel
- * All using Google AI Imagen 3 - NO FREE ALTERNATIVES
+ * All using Vertex AI Imagen 3 - NO FREE ALTERNATIVES
  */
 export async function generateCardImages(
     cards: Array<{ imagePrompt: string }>,
@@ -122,16 +127,20 @@ export async function generateCardImages(
     resolution: '2k' | '4k' = '2k'
 ): Promise<ImageResult[]> {
     // Validate required parameters
-    if (!apiKey) {
-        throw new Error('API Key가 필요합니다. 설정에서 Gemini API Key를 입력해주세요.');
+    if (!apiKey || !projectId) {
+        throw new Error('API Key와 Google Cloud Project ID가 모두 필요합니다. 설정에서 입력해주세요.');
     }
+
+    // After validation, apiKey and projectId are guaranteed to be strings
+    const validatedApiKey: string = apiKey;
+    const validatedProjectId: string = projectId;
 
     const imagePromises = cards.map((card) =>
         generateCardImage({
             prompt: card.imagePrompt,
             aspectRatio,
-            apiKey,
-            projectId,
+            apiKey: validatedApiKey,
+            projectId: validatedProjectId,
             location,
             resolution,
         })
@@ -139,3 +148,4 @@ export async function generateCardImages(
 
     return Promise.all(imagePromises);
 }
+

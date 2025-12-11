@@ -4,7 +4,7 @@ interface ImageGenerationRequest {
     prompt: string;
     aspectRatio?: string;
     apiKey: string;
-    projectId?: string;
+    projectId: string;
     location?: string;
     resolution?: '2k' | '4k';
 }
@@ -42,6 +42,8 @@ export async function POST(request: NextRequest) {
             prompt,
             aspectRatio = '1:1',
             apiKey,
+            projectId,
+            location = 'us-central1',
             resolution = '2k',
         } = body;
 
@@ -52,48 +54,72 @@ export async function POST(request: NextRequest) {
             );
         }
 
+        if (!projectId) {
+            return NextResponse.json(
+                { error: 'Google Cloud Project ID is required' },
+                { status: 400 }
+            );
+        }
+
         const imagenRatio = convertAspectRatio(aspectRatio);
         const enhancedPrompt = enhancePromptWithResolution(prompt, resolution);
 
-        console.log('🎨 Generating with Google AI Imagen...');
+        console.log('🎨 Generating with Vertex AI Imagen 3...');
+        console.log('Project ID:', projectId);
+        console.log('Location:', location);
         console.log('Prompt:', enhancedPrompt);
         console.log('Aspect Ratio:', imagenRatio);
-        console.log('Resolution:', resolution);
 
-        // Google AI Imagen API endpoint (uses API Key directly)
-        const endpoint = `https://generativelanguage.googleapis.com/v1beta/models/imagen-3.0-generate-001:generate`;
+        // Vertex AI Imagen 3 API endpoint with Project ID
+        const endpoint = `https://${location}-aiplatform.googleapis.com/v1/projects/${projectId}/locations/${location}/publishers/google/models/imagen-3.0-generate-001:predict`;
 
-        // Prepare request payload for Imagen
+        // Prepare request payload for Imagen 3
         const requestPayload = {
-            prompt: enhancedPrompt,
-            config: {
-                numberOfImages: 1,
+            instances: [
+                {
+                    prompt: enhancedPrompt,
+                }
+            ],
+            parameters: {
+                sampleCount: 1,
                 aspectRatio: imagenRatio,
-                negativePrompt: "",
+                safetyFilterLevel: "block_few",
+                personGeneration: "allow_adult",
             }
         };
 
-        console.log('📡 Calling Google AI Imagen API...');
+        console.log('📡 Calling Vertex AI endpoint:', endpoint);
 
-        // Make request to Google AI
-        const response = await fetch(endpoint, {
+        // Make request to Vertex AI with API Key as query parameter
+        const apiUrl = `${endpoint}?key=${apiKey}`;
+
+        const response = await fetch(apiUrl, {
             method: 'POST',
             headers: {
                 'Content-Type': 'application/json',
-                'x-goog-api-key': apiKey,
             },
             body: JSON.stringify(requestPayload),
         });
 
         if (!response.ok) {
             const errorText = await response.text();
-            console.error('❌ Google AI Error Response:', errorText);
+            console.error('❌ Vertex AI Error Response:', errorText);
 
             // Handle specific error codes
+            if (response.status === 404) {
+                return NextResponse.json(
+                    {
+                        error: 'Vertex AI 엔드포인트를 찾을 수 없습니다 (Error 404). Project ID가 올바른지 확인해주세요.',
+                        details: errorText
+                    },
+                    { status: 404 }
+                );
+            }
+
             if (response.status === 403) {
                 return NextResponse.json(
                     {
-                        error: 'Google AI API 권한이 없습니다 (Error 403). API Key의 권한을 확인해주세요.',
+                        error: 'Vertex AI API 권한이 없습니다 (Error 403). GCP에서 Vertex AI API를 활성화하고 결제를 연결해주세요.',
                         details: errorText
                     },
                     { status: 403 }
@@ -112,7 +138,7 @@ export async function POST(request: NextRequest) {
 
             return NextResponse.json(
                 {
-                    error: `Google AI Imagen API 호출 실패 (HTTP ${response.status})`,
+                    error: `Vertex AI API 호출 실패 (HTTP ${response.status})`,
                     details: errorText
                 },
                 { status: response.status }
@@ -120,18 +146,18 @@ export async function POST(request: NextRequest) {
         }
 
         const result = await response.json();
-        console.log('✅ Google AI Response received');
+        console.log('✅ Vertex AI Response received');
 
         // Extract image from response
-        if (result.images && result.images.length > 0) {
-            const imageData = result.images[0];
+        if (result.predictions && result.predictions.length > 0) {
+            const prediction = result.predictions[0];
 
-            // Google AI returns base64 encoded image
-            if (imageData.image) {
-                const base64Data = imageData.image;
-                const mimeType = imageData.mimeType || 'image/png';
+            // Vertex AI returns base64 encoded image
+            if (prediction.bytesBase64Encoded) {
+                const base64Data = prediction.bytesBase64Encoded;
+                const mimeType = prediction.mimeType || 'image/png';
 
-                console.log('✅ Imagen generation successful');
+                console.log('✅ Vertex AI Imagen 3 generation successful');
                 return NextResponse.json({
                     url: `data:${mimeType};base64,${base64Data}`,
                     fallback: false
@@ -139,7 +165,7 @@ export async function POST(request: NextRequest) {
             }
         }
 
-        throw new Error('No image data in Google AI response');
+        throw new Error('No image data in Vertex AI response');
 
     } catch (error: any) {
         console.error('❌ Image generation error:', error);
@@ -148,7 +174,7 @@ export async function POST(request: NextRequest) {
 
         return NextResponse.json(
             {
-                error: `Google AI Imagen 호출 중 오류 발생: ${errorMsg}`,
+                error: `Vertex AI Imagen 3 호출 중 오류 발생: ${errorMsg}`,
                 details: error.stack
             },
             { status: 500 }
