@@ -1,36 +1,115 @@
-This is a [Next.js](https://nextjs.org) project bootstrapped with [`create-next-app`](https://nextjs.org/docs/app/api-reference/cli/create-next-app).
+# 🎨 AI 카드뉴스 생성기
 
-## Getting Started
+클릭 한 번으로 전문가급 카드뉴스를 자동 생성하는 AI 기반 콘텐츠 제작 도구입니다.
 
-First, run the development server:
+## ✨ 주요 기능
+
+- 🤖 **AI 자동 생성**: Gemini 2.0 Flash로 텍스트 자동 생성
+- 🎨 **고품질 이미지**: Imagen 3를 활용한 전문가급 이미지 생성
+- 🎭 **5가지 스타일**: 모던 미니멀, 플랫 디자인, 3D 렌더, 수채화, 일러스트
+- 📐 **다양한 비율**: 1:1 정사각형, 9:16 세로, 16:9 가로
+- 🖼️ **참조 이미지**: 원하는 스타일이나 캐릭터 참조 가능
+- 💾 **간편한 다운로드**: 개별 또는 전체 다운로드 지원
+- 🌐 **SEO 최적화**: 검색 엔진 및 소셜 미디어 공유 최적화
+
+## 🚀 시작하기
+
+### 1. 프로젝트 클론
+
+```bash
+git clone https://github.com/love75x-dot/cardnews_ai.git
+cd cardnews_ai
+```
+
+### 2. 패키지 설치
+
+```bash
+npm install
+```
+
+### 3. 아이콘 및 이미지 생성 (선택사항)
+
+```bash
+npm run generate:assets
+```
+
+### 4. 개발 서버 실행
 
 ```bash
 npm run dev
-# or
-yarn dev
-# or
-pnpm dev
-# or
-bun dev
 ```
 
-Open [http://localhost:3000](http://localhost:3000) with your browser to see the result.
+브라우저에서 [http://localhost:3000](http://localhost:3000)을 열어 확인하세요.
 
-You can start editing the page by modifying `app/page.tsx`. The page auto-updates as you edit the file.
+## 🔑 API 키 설정
 
-This project uses [`next/font`](https://nextjs.org/docs/app/building-your-application/optimizing/fonts) to automatically optimize and load [Geist](https://vercel.com/font), a new font family for Vercel.
+앱 실행 후 우측 상단의 **설정** 버튼을 클릭하여 다음 정보를 입력하세요:
 
-## Learn More
+1. **Gemini API Key**: [Google AI Studio](https://makersuite.google.com/app/apikey)에서 발급
+2. **GCP Project ID**: Google Cloud 프로젝트 ID (Imagen 3 사용 시)
 
-To learn more about Next.js, take a look at the following resources:
+## 📦 빌드 및 배포
 
-- [Next.js Documentation](https://nextjs.org/docs) - learn about Next.js features and API.
-- [Learn Next.js](https://nextjs.org/learn) - an interactive Next.js tutorial.
+### 프로덕션 빌드
 
-You can check out [the Next.js GitHub repository](https://github.com/vercel/next.js) - your feedback and contributions are welcome!
+```bash
+npm run build
+npm start
+```
 
-## Deploy on Vercel
+### Vercel 배포
 
-The easiest way to deploy your Next.js app is to use the [Vercel Platform](https://vercel.com/new?utm_medium=default-template&filter=next.js&utm_source=create-next-app&utm_campaign=create-next-app-readme) from the creators of Next.js.
+[![Deploy with Vercel](https://vercel.com/button)](https://vercel.com/new/clone?repository-url=https://github.com/love75x-dot/cardnews_ai)
 
-Check out our [Next.js deployment documentation](https://nextjs.org/docs/app/building-your-application/deploying) for more details.
+## 🛠️ 기술 스택
+
+- **Framework**: Next.js 16 (App Router)
+- **Language**: TypeScript
+- **Styling**: Tailwind CSS
+- **UI Components**: Radix UI
+- **AI Models**: 
+  - Gemini 2.0 Flash (텍스트 생성)
+  - Imagen 3 (이미지 생성)
+- **Icons**: Lucide React
+
+## 📁 프로젝트 구조
+
+```
+cardnews_ai/
+├── app/                      # Next.js App Router
+│   ├── components/          # React 컴포넌트
+│   ├── api/                 # API 라우트
+│   ├── layout.tsx           # 레이아웃 (SEO 메타데이터)
+│   ├── page.tsx             # 메인 페이지
+│   └── sitemap.ts           # 사이트맵
+├── lib/                     # 유틸리티 함수
+│   ├── gemini.ts           # Gemini API
+│   ├── imageGenerator.ts   # Imagen 3 API
+│   └── downloadUtils.ts    # 다운로드 기능
+├── public/                  # 정적 파일
+│   ├── og-image.png        # OG 이미지 (1200x630)
+│   ├── icon.png            # 앱 아이콘 (512x512)
+│   └── favicon.ico         # 파비콘
+└── scripts/                # 빌드 스크립트
+    ├── generate-icons.js   # 아이콘 생성
+    └── generate-og-image.js # OG 이미지 생성
+```
+
+## 🎯 사용 방법
+
+1. **주제 입력**: 카드뉴스로 만들 주제나 내용 입력
+2. **설정 조정**: 장면 수, 비율, 해상도, 스타일 선택
+3. **생성**: "카드 생성하기" 버튼 클릭
+4. **다운로드**: 개별 또는 전체 다운로드
+
+## 📝 라이선스
+
+This project is licensed under the MIT License.
+
+## 🤝 기여
+
+기여를 환영합니다! Pull Request를 보내주세요.
+
+## 📧 문의
+
+문제가 있거나 제안사항이 있다면 [Issues](https://github.com/love75x-dot/cardnews_ai/issues)를 열어주세요.

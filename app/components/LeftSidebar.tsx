@@ -122,8 +122,9 @@ export function LeftSidebar({
         <aside className="w-[380px] border-r border-[#27272a] bg-[#0b0c15] overflow-y-auto">
             <div className="p-6 space-y-6">
                 {/* Header */}
-                <div className="text-center">
-                    <h1 className="text-2xl font-bold text-white">AI 카드뉴스 생성기</h1>
+                <div className="text-center space-y-2">
+                    <h1 className="text-2xl font-bold text-white">카드뉴스 만들기</h1>
+                    <p className="text-sm text-gray-400">주제만 입력하면 자동으로 생성됩니다</p>
                 </div>
 
                 {/* Reset Button */}
@@ -140,7 +141,7 @@ export function LeftSidebar({
                 <div className="space-y-3">
                     {/* Section Header with Expand Button */}
                     <div className="flex items-center justify-between">
-                        <h2 className="text-base font-bold text-blue-500">1. 콘텐츠 입력</h2>
+                        <h2 className="text-base font-bold text-blue-400">1. 내용 입력</h2>
                         <Button
                             variant="ghost"
                             size="sm"
@@ -168,7 +169,7 @@ export function LeftSidebar({
 
                 {/* Generation Settings Section */}
                 <div className="space-y-4">
-                    <h2 className="text-base font-bold text-blue-500">2. ⚙️ 생성 설정</h2>
+                    <h2 className="text-base font-bold text-blue-400">2. 생성 설정</h2>
 
                     {/* Scene Count */}
                     <div className="space-y-2">
@@ -225,7 +226,7 @@ export function LeftSidebar({
 
                 {/* Art Style Section */}
                 <div className="space-y-4">
-                    <h2 className="text-base font-bold text-blue-500">3. 🎨 아트 스타일</h2>
+                    <h2 className="text-base font-bold text-blue-400">3. 디자인 스타일</h2>
 
                     {/* Art Style */}
                     <div className="space-y-2">
@@ -247,18 +248,18 @@ export function LeftSidebar({
                     </div>
                 </div>
 
-                {/* AI Text Rendering Info Box */}
-                <div className="bg-purple-900/20 border border-purple-600 rounded-lg p-4">
+                {/* Info Box */}
+                <div className="bg-blue-900/10 border border-blue-600/30 rounded-lg p-4">
                     <div className="flex items-start gap-3">
                         <div className="flex-shrink-0">
-                            <Wand2 className="w-5 h-5 text-purple-400" />
+                            <Wand2 className="w-5 h-5 text-blue-400" />
                         </div>
                         <div className="flex-1">
-                            <h3 className="text-sm font-semibold text-purple-400 mb-1">
-                                🔮 AI 텍스트 렌더링
+                            <h3 className="text-sm font-semibold text-blue-400 mb-1">
+                                💡 자동 생성 기능
                             </h3>
                             <p className="text-xs text-gray-300 leading-relaxed">
-                                Nano Banana Pro가 이미지 내 텍스트를 자동 생성합니다
+                                텍스트와 이미지가 자동으로 조합되어 완성된 카드뉴스를 만들어드립니다
                             </p>
                         </div>
                     </div>
@@ -268,7 +269,7 @@ export function LeftSidebar({
                 <div className="space-y-3">
                     {/* Header with Toggle */}
                     <div className="flex items-center justify-between">
-                        <h2 className="text-base font-bold text-blue-500">4. 🖼️ 참조 이미지 (선택)</h2>
+                        <h2 className="text-base font-bold text-blue-400">4. 참조 이미지 (선택사항)</h2>
                         <Switch
                             id="reference-toggle"
                             checked={referenceEnabled}
@@ -313,8 +314,7 @@ export function LeftSidebar({
                                 disabled={referenceImages.length >= 14}
                             >
                                 <Upload className="w-4 h-4 mr-2" />
-                                📤 이미지 선택 (최대 14개)
-                                {referenceImages.length > 0 && ` - ${referenceImages.length}/14`}
+                                이미지 추가하기 {referenceImages.length > 0 ? `(${referenceImages.length}/14)` : '(최대 14개)'}
                             </Button>
 
                             {/* Thumbnail Preview */}

@@ -1,0 +1,10 @@
+# https://www.robotstxt.org/robotstxt.html
+User-agent: *
+Allow: /
+
+# Disallow private/admin routes
+Disallow: /api/
+Disallow: /_next/
+
+# Sitemap location
+Sitemap: https://cardnews-ai.vercel.app/sitemap.xml

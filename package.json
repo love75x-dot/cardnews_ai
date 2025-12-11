@@ -6,7 +6,10 @@
     "dev": "next dev",
     "build": "next build",
     "start": "next start",
-    "lint": "eslint"
+    "lint": "eslint",
+    "generate:icons": "node scripts/generate-icons.js",
+    "generate:og": "node scripts/generate-og-image.js",
+    "generate:assets": "npm run generate:icons && npm run generate:og"
   },
   "dependencies": {
     "@google-cloud/vertexai": "^1.10.0",
@@ -34,6 +37,7 @@
     "@types/node": "^20",
     "@types/react": "^19",
     "@types/react-dom": "^19",
+    "canvas": "^3.2.0",
     "eslint": "^9",
     "eslint-config-next": "16.0.8",
     "tailwindcss": "^4",
