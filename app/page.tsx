@@ -130,8 +130,8 @@ export default function Home() {
       // Stage 2: Image Generation Request (30%)
       setProgressStage(1);
       toast({
-        title: "🎨 이미지 생성 시작",
-        description: `${generatedContent.length}개 이미지를 ${resolution === '4k' ? '4K 고화질로' : '2K로'} 생성합니다`,
+        title: "🎨 Vertex AI Imagen 3 생성 시작",
+        description: `${generatedContent.length}개 이미지 생성 (약 $${(generatedContent.length * 0.134).toFixed(2)} 과금 예정)`,
       });
 
       // Prepare reference images if enabled
@@ -150,8 +150,7 @@ export default function Home() {
         apiKey,
         projectId,
         'us-central1',
-        resolution as '2k' | '4k',
-        refImages
+        resolution as '2k' | '4k'
       );
 
       // Stage 4: Text Overlay (80%)

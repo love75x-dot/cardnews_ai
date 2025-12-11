@@ -1,68 +1,77 @@
 /**
- * Image Generation with Pollinations AI
- * Free, no API key required
- * With resolution support and aspect ratio control
+ * Image Generation with Google Vertex AI Imagen 3
+ * Paid service - requires Google Cloud billing enabled
+ * NO FREE FALLBACK - shows exact errors when API fails
  */
 
 export interface ImageGenerationOptions {
     prompt: string;
     aspectRatio?: string;
-    apiKey?: string;
-    projectId?: string;
+    apiKey: string;  // Required
+    projectId: string;  // Required
     location?: string;
     resolution?: '2k' | '4k';
-    referenceImages?: Array<{ base64: string; mode: string }>;
 }
 
 export interface ImageResult {
     url: string;
-    fallback: boolean;
+    fallback: boolean;  // Always false - no fallback allowed
 }
 
 /**
- * Get dimensions based on aspect ratio
+ * Generate image using Google Vertex AI Imagen 3 via API route
+ * NO FALLBACK - throws error if Vertex AI fails
  */
-function getAspectRatioDimensions(ratio: string): [number, number] {
-    switch (ratio) {
-        case '1:1':
-            return [1024, 1024];
-        case '9:16':
-            return [720, 1280];
-        case '16:9':
-            return [1280, 720];
-        default:
-            return [1024, 1024];
-    }
-}
-
-/**
- * Generate image using Pollinations AI (Free, no API key needed)
- */
-async function generatePollinationsImage(
+async function generateImagenImage(
     prompt: string,
     aspectRatio: string,
-    resolution: '2k' | '4k' = '2k'
+    apiKey: string,
+    projectId: string,
+    location: string,
+    resolution: '2k' | '4k'
 ): Promise<string> {
-    const [width, height] = getAspectRatioDimensions(aspectRatio);
+    console.log('🎨 Generating with Vertex AI Imagen 3...');
+    console.log('Project:', projectId);
+    console.log('Location:', location);
 
-    // Apply resolution multiplier for 4k
-    const scale = resolution === '4k' ? 2 : 1;
-    const finalWidth = width * scale;
-    const finalHeight = height * scale;
+    const response = await fetch('/api/generate-image', {
+        method: 'POST',
+        headers: {
+            'Content-Type': 'application/json',
+        },
+        body: JSON.stringify({
+            prompt,
+            aspectRatio,
+            apiKey,
+            projectId,
+            location,
+            resolution,
+        }),
+    });
 
-    const pollinationsUrl = new URL('https://image.pollinations.ai/prompt');
-    pollinationsUrl.pathname = `/prompt/${encodeURIComponent(prompt)}`;
-    pollinationsUrl.searchParams.set('width', finalWidth.toString());
-    pollinationsUrl.searchParams.set('height', finalHeight.toString());
-    pollinationsUrl.searchParams.set('nologo', 'true');
-    pollinationsUrl.searchParams.set('enhance', 'true');
+    if (!response.ok) {
+        const errorData = await response.json();
 
-    return pollinationsUrl.toString();
+        // Throw detailed error - DO NOT fallback to free service
+        if (response.status === 403) {
+            throw new Error(errorData.error || 'Google Cloud Billing이 활성화되지 않았거나 권한이 없습니다 (Error 403)');
+        }
+
+        if (response.status === 401) {
+            throw new Error(errorData.error || 'API 인증에 실패했습니다 (Error 401). API Key를 확인해주세요.');
+        }
+
+        throw new Error(errorData.error || `HTTP ${response.status}: Vertex AI 호출 실패`);
+    }
+
+    const data = await response.json();
+    console.log('✅ Vertex AI Imagen 3 generation successful');
+    return data.url;
 }
 
 /**
- * Generate a single card image
- * Uses Pollinations AI - free and no authentication required
+ * Generate a single card image using ONLY Vertex AI Imagen 3
+ * NO FALLBACK - requires valid API key and project ID
  */
 export async function generateCardImage(
     options: ImageGenerationOptions
@@ -70,24 +79,39 @@ export async function generateCardImage(
     const {
         prompt,
         aspectRatio = '1:1',
+        apiKey,
+        projectId,
+        location = 'us-central1',
         resolution = '2k',
     } = options;
 
-    console.log('🎨 Generating image with Pollinations AI (free)');
-    console.log('Prompt:', prompt);
-    console.log('Aspect Ratio:', aspectRatio);
-    console.log('Resolution:', resolution);
+    // Validate required parameters
+    if (!apiKey || !projectId) {
+        throw new Error('API Key와 Project ID가 필요합니다. 설정에서 입력해주세요.');
+    }
 
-    const imageUrl = await generatePollinationsImage(prompt, aspectRatio, resolution);
+    console.log('🚀 Using Google Vertex AI Imagen 3 (Paid Service)');
+    console.log('⚠️ Google Cloud billing will be charged');
+
+    // Call Vertex AI - NO FALLBACK on error
+    const imageUrl = await generateImagenImage(
+        prompt,
+        aspectRatio,
+        apiKey,
+        projectId,
+        location,
+        resolution
+    );
 
     return {
         url: imageUrl,
-        fallback: false  // No fallback needed, this is the primary method
+        fallback: false  // Never fallback - always using Vertex AI
     };
 }
 
 /**
  * Generate images for multiple cards in parallel
+ * All using Vertex AI Imagen 3 - NO FREE ALTERNATIVES
  */
 export async function generateCardImages(
     cards: Array<{ imagePrompt: string }>,
@@ -95,9 +119,13 @@ export async function generateCardImages(
     apiKey?: string,
     projectId?: string,
     location?: string,
-    resolution: '2k' | '4k' = '2k',
-    referenceImages?: Array<{ base64: string; mode: string }>
+    resolution: '2k' | '4k' = '2k'
 ): Promise<ImageResult[]> {
+    // Validate required parameters
+    if (!apiKey || !projectId) {
+        throw new Error('API Key와 Project ID가 필요합니다. 설정에서 Vertex AI 인증 정보를 입력해주세요.');
+    }
+
     const imagePromises = cards.map((card) =>
         generateCardImage({
             prompt: card.imagePrompt,
@@ -106,10 +134,8 @@ export async function generateCardImages(
             projectId,
             location,
             resolution,
-            referenceImages
         })
     );
 
     return Promise.all(imagePromises);
 }
-
