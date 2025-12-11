@@ -47,20 +47,13 @@ export function ApiSettings({ open, onOpenChange, onSave }: ApiSettingsProps) {
         if (!apiKey.trim()) {
             toast({
                 title: "오류",
-                description: "Gemini API Key를 입력해주세요.",
+                description: "OpenAI API Key를 입력해주세요.",
                 variant: "destructive",
             });
             return;
         }
 
-        if (!projectId.trim()) {
-            toast({
-                title: "오류",
-                description: "Google Cloud Project ID를 입력해주세요. Vertex AI 과금에 필수입니다.",
-                variant: "destructive",
-            });
-            return;
-        }
+
 
         localStorage.setItem(API_KEY_STORAGE_KEY, apiKey);
         localStorage.setItem(PROJECT_ID_STORAGE_KEY, projectId);
@@ -69,7 +62,7 @@ export function ApiSettings({ open, onOpenChange, onSave }: ApiSettingsProps) {
 
         toast({
             title: "✅ 설정이 저장되었습니다",
-            description: "Vertex AI Imagen 3를 사용할 준비가 되었습니다.",
+            description: "OpenAI DALL-E 3를 사용할 준비가 되었습니다.",
         });
 
         onOpenChange(false);
@@ -122,16 +115,16 @@ export function ApiSettings({ open, onOpenChange, onSave }: ApiSettingsProps) {
                             <h3 className="text-lg font-semibold flex items-center gap-2">
                                 🖌️ 이미지 생성 AI
                             </h3>
-                            <p className="text-base font-medium text-gray-200">Imagen 3 (Nano Banana Pro)</p>
+                            <p className="text-base font-medium text-gray-200">OpenAI DALL-E 3</p>
                             <div className="inline-block">
                                 <span className="text-xs font-semibold text-purple-400 bg-purple-900/30 px-2 py-1 rounded">
-                                    💎 유료 (Vertex AI)
+                                    💸 유료 (OpenAI)
                                 </span>
                             </div>
                             <ul className="text-sm text-gray-400 space-y-1 mt-2">
                                 <li>• 최고 품질 이미지 생성</li>
-                                <li className="text-yellow-400 font-semibold">• $0.134/장 (Google Cloud 과금)</li>
-                                <li className="text-red-400 font-semibold">• Billing 활성화 필수</li>
+                                <li className="text-yellow-400 font-semibold">• $0.04/장 (1024x1024)</li>
+                                <li className="text-blue-400">• API Key 인증</li>
                             </ul>
                         </div>
                     </div>
@@ -140,7 +133,7 @@ export function ApiSettings({ open, onOpenChange, onSave }: ApiSettingsProps) {
                     <div className="space-y-3">
                         <div className="flex items-center justify-between">
                             <Label htmlFor="api-key" className="text-sm font-medium text-gray-200">
-                                🔑 Gemini API Key
+                                🔑 OpenAI API Key
                             </Label>
                             {isSaved && (
                                 <span className="text-xs font-semibold text-green-400 bg-green-900/30 px-2 py-1 rounded">
@@ -172,12 +165,12 @@ export function ApiSettings({ open, onOpenChange, onSave }: ApiSettingsProps) {
                         </div>
 
                         <a
-                            href="https://aistudio.google.com/app/apikey"
+                            href="https://platform.openai.com/api-keys"
                             target="_blank"
                             rel="noopener noreferrer"
                             className="inline-flex items-center gap-1 text-sm text-blue-400 hover:text-blue-300 transition-colors"
                         >
-                            Gemini API Key 발급받기
+                            OpenAI API Key 발급받기
                             <ExternalLink className="w-3 h-3" />
                         </a>
                     </div>

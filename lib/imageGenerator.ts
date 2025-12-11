@@ -1,21 +1,21 @@
 /**
- * Image Generation with Vertex AI Imagen 3
- * Requires Google Cloud Project ID and API Key
- * NO FREE FALLBACK - shows exact errors when API fails
+ * Image Generation with OpenAI DALL-E 3
+ * Paid service - requires OpenAI API Key
+ * High quality image generation with simple API Key authentication
  */
 
 export interface ImageGenerationOptions {
     prompt: string;
     aspectRatio?: string;
-    apiKey: string;  // Required
-    projectId: string;  // Required - must be valid GCP Project ID
+    apiKey: string;  // Required - OpenAI API Key
+    projectId?: string;  // Not used for DALL-E 3
     location?: string;
     resolution?: '2k' | '4k';
 }
 
 export interface ImageResult {
     url: string;
-    fallback: boolean;  // Always false - no fallback allowed
+    fallback: boolean;
 }
 
 /**
@@ -70,8 +70,8 @@ async function generateImagenImage(
 }
 
 /**
- * Generate a single card image using Vertex AI Imagen 3
- * NO FALLBACK - requires valid API key and Project ID
+ * Generate a single card image using OpenAI DALL-E 3
+ * Requires valid OpenAI API key
  */
 export async function generateCardImage(
     options: ImageGenerationOptions
@@ -87,36 +87,31 @@ export async function generateCardImage(
 
     // Validate required parameters
     if (!apiKey) {
-        throw new Error('API Key가 필요합니다. 설정에서 입력해주세요.');
+        throw new Error('OpenAI API Key가 필요합니다. 설정에서 입력해주세요.');
     }
 
-    if (!projectId) {
-        throw new Error('Google Cloud Project ID가 필요합니다. 설정에서 입력해주세요.');
-    }
+    console.log('🚀 Using OpenAI DALL-E 3');
+    console.log('💰 Paid API - billing will apply');
 
-    console.log('🚀 Using Vertex AI Imagen 3');
-    console.log('⚠️ Google Cloud billing will be charged');
-    console.log('Project ID:', projectId);
-
-    // Call Vertex AI - NO FALLBACK on error
+    // Call OpenAI DALL-E 3
     const imageUrl = await generateImagenImage(
         prompt,
         aspectRatio,
         apiKey,
-        projectId,
+        projectId || '',  // Not used by DALL-E but required by function signature
         location,
         resolution
     );
 
     return {
         url: imageUrl,
-        fallback: false  // Never fallback - always using Vertex AI
+        fallback: false
     };
 }
 
 /**
  * Generate images for multiple cards in parallel
- * All using Vertex AI Imagen 3 - NO FREE ALTERNATIVES
+ * All using OpenAI DALL-E 3
  */
 export async function generateCardImages(
     cards: Array<{ imagePrompt: string }>,
@@ -127,20 +122,19 @@ export async function generateCardImages(
     resolution: '2k' | '4k' = '2k'
 ): Promise<ImageResult[]> {
     // Validate required parameters
-    if (!apiKey || !projectId) {
-        throw new Error('API Key와 Google Cloud Project ID가 모두 필요합니다. 설정에서 입력해주세요.');
+    if (!apiKey) {
+        throw new Error('OpenAI API Key가 필요합니다. 설정에서 입력해주세요.');
     }
 
-    // After validation, apiKey and projectId are guaranteed to be strings
+    // After validation, apiKey is guaranteed to be string
     const validatedApiKey: string = apiKey;
-    const validatedProjectId: string = projectId;
 
     const imagePromises = cards.map((card) =>
         generateCardImage({
             prompt: card.imagePrompt,
             aspectRatio,
             apiKey: validatedApiKey,
-            projectId: validatedProjectId,
+            projectId,
             location,
             resolution,
         })
