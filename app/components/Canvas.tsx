@@ -1,9 +1,10 @@
 'use client';
 
 import React, { useRef, useState } from 'react';
-import { Settings, Download, Loader2 } from 'lucide-react';
+import { Settings, Download, Loader2, BookOpen } from 'lucide-react';
 import { Button } from '@/components/ui/button';
 import { downloadCard, downloadAllCards } from '@/lib/downloadUtils';
+import { cn } from '@/lib/utils';
 
 interface CanvasProps {
     cards: Array<{
@@ -12,22 +13,33 @@ interface CanvasProps {
         imagePrompt?: string;
         imageUrl?: string;
     }>;
+    selectedIndex: number;
+    onSceneSelect: (index: number) => void;
     onSettingsClick: () => void;
     onManualClick: () => void;
     topic?: string;
 }
 
-export function Canvas({ cards, onSettingsClick, onManualClick, topic = '카드뉴스' }: CanvasProps) {
+export function Canvas({
+    cards,
+    selectedIndex,
+    onSceneSelect,
+    onSettingsClick,
+    onManualClick,
+    topic = '카드뉴스'
+}: CanvasProps) {
     const hasCards = cards.length > 0;
+    const selectedScene = hasCards ? cards[selectedIndex] : null;
     const cardRefs = useRef<(HTMLElement | null)[]>([]);
     const [isDownloading, setIsDownloading] = useState(false);
 
-    const handleDownloadCard = async (index: number) => {
-        const cardElement = cardRefs.current[index];
+    const handleDownloadScene = async () => {
+        if (!selectedScene) return;
+        const cardElement = cardRefs.current[selectedIndex];
         if (!cardElement) return;
 
         try {
-            await downloadCard(cardElement, index + 1, topic);
+            await downloadCard(cardElement, selectedScene.id, topic);
         } catch (error) {
             if (error instanceof Error) {
                 alert(error.message);
@@ -54,7 +66,7 @@ export function Canvas({ cards, onSettingsClick, onManualClick, topic = '카드�
     return (
         <main className="flex-1 flex flex-col overflow-hidden bg-[#050505]">
             {/* Header with Download and Settings Buttons */}
-            <div className="h-16 border-b border-[#27272a] flex items-center justify-between px-6">
+            <div className="h-16 border-b border-slate-800 flex items-center justify-between px-6">
                 {/* Left: Download All Button (visible when cards exist) */}
                 {hasCards && (
                     <Button
@@ -84,7 +96,8 @@ export function Canvas({ cards, onSettingsClick, onManualClick, topic = '카드�
                         variant="ghost"
                         className="text-gray-300 hover:text-white hover:bg-white/5"
                     >
-                        📘 매뉴얼
+                        <BookOpen className="w-4 h-4 mr-2" />
+                        매뉴얼
                     </Button>
 
                     <Button
@@ -93,71 +106,132 @@ export function Canvas({ cards, onSettingsClick, onManualClick, topic = '카드�
                         className="text-gray-300 hover:text-white hover:bg-white/5"
                     >
                         <Settings className="w-4 h-4 mr-2" />
-                        ⚙️ 설정(API)
+                        설정(API)
                     </Button>
                 </div>
             </div>
 
-            {/* Main Content */}
-            <div className="flex-1 p-8 overflow-auto">
+            {/* 3-Column Editor Layout */}
+            <div className="flex-1 flex overflow-hidden">
                 {!hasCards ? (
-                    // Empty State
-                    <div className="h-full border border-[#27272a] rounded-lg flex items-center justify-center">
+                    // Empty State - Full Width
+                    <div className="flex-1 flex items-center justify-center bg-slate-950">
                         <div className="text-center space-y-4">
-                            <p className="text-base text-gray-500">
-                                좌측 패널에서 콘텐츠를 입력하고 생성 버튼을 눌러주세요
+                            <div className="text-6xl">📝</div>
+                            <p className="text-xl text-gray-400">
+                                콘텐츠를 입력하여 카드뉴스를 생성하세요
+                            </p>
+                            <p className="text-sm text-gray-500">
+                                좌측 패널에서 주제와 장면 수를 입력하고<br />
+                                &apos;카드 생성하기&apos; 버튼을 클릭하세요
                             </p>
                         </div>
                     </div>
                 ) : (
-                    // Cards Grid with Images
-                    <div className="max-w-6xl mx-auto">
-                        <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-2 gap-6">
+                    <>
+                        {/* Left Panel - Scene List */}
+                        <div className="w-60 border-r border-slate-800 overflow-y-auto bg-slate-900">
                             {cards.map((card, index) => (
                                 <div
                                     key={card.id}
-                                    ref={(el) => { cardRefs.current[index] = el; }}
-                                    className="relative aspect-square rounded-xl overflow-hidden shadow-2xl group hover:shadow-purple-500/20 transition-all duration-300"
+                                    onClick={() => onSceneSelect(index)}
+                                    className={cn(
+                                        "p-4 cursor-pointer hover:bg-slate-800/50 transition-colors border-b border-slate-800",
+                                        selectedIndex === index && "bg-slate-800 ring-2 ring-blue-500 ring-inset"
+                                    )}
                                 >
-                                    {/* Background Image */}
-                                    {card.imageUrl ? (
+                                    {/* Thumbnail */}
+                                    <div className="aspect-square rounded-lg overflow-hidden mb-2 bg-slate-950">
+                                        {card.imageUrl && (
+                                            <img
+                                                src={card.imageUrl}
+                                                alt={`Scene ${card.id}`}
+                                                className="w-full h-full object-cover"
+                                            />
+                                        )}
+                                    </div>
+
+                                    {/* Scene Info */}
+                                    <div className="text-xs text-gray-400">Scene {card.id}</div>
+                                    <div className="text-sm text-white line-clamp-2 mt-1">{card.text}</div>
+                                </div>
+                            ))}
+                        </div>
+
+                        {/* Center Panel - Main Canvas */}
+                        <div className="flex-1 bg-slate-950 flex items-center justify-center p-8 overflow-auto">
+                            {selectedScene && (
+                                <div
+                                    ref={(el) => { cardRefs.current[selectedIndex] = el; }}
+                                    className="relative max-w-4xl w-full aspect-square"
+                                >
+                                    {/* Main Image */}
+                                    {selectedScene.imageUrl ? (
                                         <img
-                                            src={card.imageUrl}
-                                            alt={card.text}
-                                            className="absolute inset-0 w-full h-full object-cover"
+                                            src={selectedScene.imageUrl}
+                                            alt={selectedScene.text}
+                                            className="absolute inset-0 w-full h-full object-cover rounded-xl shadow-2xl"
                                         />
                                     ) : (
-                                        <div className="absolute inset-0 bg-gradient-to-br from-purple-900/30 to-blue-900/30" />
+                                        <div className="absolute inset-0 bg-gradient-to-br from-purple-900/30 to-blue-900/30 rounded-xl" />
                                     )}
 
-                                    {/* Gradient Overlay for Text Readability */}
-                                    <div className="absolute inset-0 bg-gradient-to-t from-black/90 via-black/50 to-transparent" />
+                                    {/* Text Overlay with Gradient */}
+                                    <div className="absolute inset-0 bg-gradient-to-t from-black via-black/60 to-transparent rounded-xl" />
 
-                                    {/* Text Overlay */}
-                                    <div className="absolute inset-0 flex flex-col justify-end p-8">
-                                        <h2 className="text-white text-3xl font-bold leading-tight drop-shadow-lg">
-                                            {card.text}
+                                    {/* Text Content */}
+                                    <div className="absolute bottom-0 left-0 right-0 p-8">
+                                        <h2 className="text-white text-4xl font-bold leading-tight drop-shadow-lg">
+                                            {selectedScene.text}
                                         </h2>
                                     </div>
 
                                     {/* Page Number Badge */}
                                     <div className="absolute top-4 right-4 bg-white/20 backdrop-blur-sm rounded-full w-12 h-12 flex items-center justify-center border border-white/30">
-                                        <span className="text-white font-bold text-lg">{card.id}</span>
+                                        <span className="text-white font-bold text-lg">{selectedScene.id}</span>
+                                    </div>
+                                </div>
+                            )}
+                        </div>
+
+                        {/* Right Panel - Property Panel */}
+                        <div className="w-[300px] border-l border-slate-800 overflow-y-auto p-6 bg-slate-900">
+                            {selectedScene && (
+                                <div className="space-y-6">
+                                    {/* Script Section */}
+                                    <div>
+                                        <h3 className="text-sm font-semibold text-gray-400 mb-2 flex items-center gap-2">
+                                            📄 스크립트
+                                        </h3>
+                                        <div className="bg-slate-800 rounded-lg p-3 text-sm text-gray-300 leading-relaxed">
+                                            {selectedScene.text}
+                                        </div>
                                     </div>
 
-                                    {/* Download Button - Visible on Hover */}
-                                    <button
-                                        onClick={() => handleDownloadCard(index)}
-                                        className="absolute bottom-4 left-4 opacity-0 group-hover:opacity-100 transition-opacity duration-300 bg-white/20 backdrop-blur-sm rounded-full p-3 hover:bg-white/30 border border-white/30"
-                                        aria-label={`카드 ${card.id} 다운로드`}
-                                        title="이 카드 다운로드"
+                                    {/* Prompt Info */}
+                                    {selectedScene.imagePrompt && (
+                                        <div>
+                                            <h3 className="text-sm font-semibold text-gray-400 mb-2 flex items-center gap-2">
+                                                🎨 프롬프트 정보
+                                            </h3>
+                                            <div className="bg-slate-800 rounded-lg p-3 text-xs text-gray-400 leading-relaxed">
+                                                {selectedScene.imagePrompt}
+                                            </div>
+                                        </div>
+                                    )}
+
+                                    {/* Download Button */}
+                                    <Button
+                                        onClick={handleDownloadScene}
+                                        className="w-full bg-gradient-to-r from-purple-600 to-blue-600 hover:from-purple-700 hover:to-blue-700 text-white"
                                     >
-                                        <Download className="w-5 h-5 text-white" />
-                                    </button>
+                                        <Download className="w-4 h-4 mr-2" />
+                                        이 장면만 다운로드
+                                    </Button>
                                 </div>
-                            ))}
+                            )}
                         </div>
-                    </div>
+                    </>
                 )}
             </div>
         </main>

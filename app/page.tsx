@@ -18,6 +18,7 @@ export default function Home() {
   const [apiKey, setApiKey] = useState('');
   const [isSettingsOpen, setIsSettingsOpen] = useState(false);
   const [isManualOpen, setIsManualOpen] = useState(false);
+  const [selectedSceneIndex, setSelectedSceneIndex] = useState(0);
 
   // Form state
   const [topic, setTopic] = useState('');
@@ -33,6 +34,13 @@ export default function Home() {
       }
     }
   }, []);
+
+  // Auto-select first scene when cards change
+  useEffect(() => {
+    if (cards.length > 0) {
+      setSelectedSceneIndex(0);
+    }
+  }, [cards]);
 
   const handleGenerate = async () => {
     // Check if API key is set
@@ -118,9 +126,11 @@ export default function Home() {
         onAspectRatioChange={setAspectRatio}
       />
 
-      {/* Main Canvas - Result Viewer */}
+      {/* Main Canvas - 3-Panel Editor */}
       <Canvas
         cards={cards}
+        selectedIndex={selectedSceneIndex}
+        onSceneSelect={setSelectedSceneIndex}
         onSettingsClick={() => setIsSettingsOpen(true)}
         onManualClick={() => setIsManualOpen(true)}
         topic={topic}
