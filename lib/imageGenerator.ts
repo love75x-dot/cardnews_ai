@@ -1,14 +1,14 @@
 /**
- * Image Generation with OpenAI DALL-E 3
- * Paid service - requires OpenAI API Key
- * High quality image generation with simple API Key authentication
+ * Image Generation with Vertex AI Imagen 3 (Nano Banana Pro)
+ * Requires Google Cloud Project ID and API Key
+ * High quality image generation with Vertex AI
  */
 
 export interface ImageGenerationOptions {
     prompt: string;
     aspectRatio?: string;
-    apiKey: string;  // Required - OpenAI API Key
-    projectId?: string;  // Not used for DALL-E 3
+    apiKey: string;  // Required - Gemini API Key
+    projectId: string;  // Required - GCP Project ID
     location?: string;
     resolution?: '2k' | '4k';
 }
@@ -70,8 +70,8 @@ async function generateImagenImage(
 }
 
 /**
- * Generate a single card image using OpenAI DALL-E 3
- * Requires valid OpenAI API key
+ * Generate a single card image using Vertex AI Imagen 3 (Nano Banana Pro)
+ * Requires valid API key and Project ID
  */
 export async function generateCardImage(
     options: ImageGenerationOptions
@@ -87,18 +87,23 @@ export async function generateCardImage(
 
     // Validate required parameters
     if (!apiKey) {
-        throw new Error('OpenAI API Key가 필요합니다. 설정에서 입력해주세요.');
+        throw new Error('API Key가 필요합니다. 설정에서 입력해주세요.');
     }
 
-    console.log('🚀 Using OpenAI DALL-E 3');
-    console.log('💰 Paid API - billing will apply');
+    if (!projectId) {
+        throw new Error('Google Cloud Project ID가 필요합니다. 설정에서 입력해주세요.');
+    }
 
-    // Call OpenAI DALL-E 3
+    console.log('🚀 Using Vertex AI Imagen 3 (Nano Banana Pro)');
+    console.log('💰 Google Cloud billing will apply');
+    console.log('Project ID:', projectId);
+
+    // Call Vertex AI Imagen 3
     const imageUrl = await generateImagenImage(
         prompt,
         aspectRatio,
         apiKey,
-        projectId || '',  // Not used by DALL-E but required by function signature
+        projectId,
         location,
         resolution
     );
@@ -111,7 +116,7 @@ export async function generateCardImage(
 
 /**
  * Generate images for multiple cards in parallel
- * All using OpenAI DALL-E 3
+ * All using Vertex AI Imagen 3 (Nano Banana Pro)
  */
 export async function generateCardImages(
     cards: Array<{ imagePrompt: string }>,
@@ -122,19 +127,20 @@ export async function generateCardImages(
     resolution: '2k' | '4k' = '2k'
 ): Promise<ImageResult[]> {
     // Validate required parameters
-    if (!apiKey) {
-        throw new Error('OpenAI API Key가 필요합니다. 설정에서 입력해주세요.');
+    if (!apiKey || !projectId) {
+        throw new Error('API Key와 Google Cloud Project ID가 모두 필요합니다. 설정에서 입력해주세요.');
     }
 
-    // After validation, apiKey is guaranteed to be string
+    // After validation, both are guaranteed to be strings
     const validatedApiKey: string = apiKey;
+    const validatedProjectId: string = projectId;
 
     const imagePromises = cards.map((card) =>
         generateCardImage({
             prompt: card.imagePrompt,
             aspectRatio,
             apiKey: validatedApiKey,
-            projectId,
+            projectId: validatedProjectId,
             location,
             resolution,
         })
