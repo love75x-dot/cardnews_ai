@@ -53,15 +53,6 @@ export function ApiSettings({ open, onOpenChange, onSave }: ApiSettingsProps) {
             return;
         }
 
-        if (!projectId.trim()) {
-            toast({
-                title: "오류",
-                description: "Google Cloud Project ID를 입력해주세요. Vertex AI 과금에 필수입니다.",
-                variant: "destructive",
-            });
-            return;
-        }
-
         localStorage.setItem(API_KEY_STORAGE_KEY, apiKey);
         localStorage.setItem(PROJECT_ID_STORAGE_KEY, projectId);
         onSave(apiKey, projectId);
@@ -69,7 +60,7 @@ export function ApiSettings({ open, onOpenChange, onSave }: ApiSettingsProps) {
 
         toast({
             title: "✅ 설정이 저장되었습니다",
-            description: "Vertex AI Imagen 3 (Nano Banana Pro)를 사용할 준비가 되었습니다.",
+            description: "Gemini (Nano Banana Pro) 사용 준비 완료!",
         });
 
         onOpenChange(false);

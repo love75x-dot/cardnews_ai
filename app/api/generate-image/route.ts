@@ -4,35 +4,8 @@ interface ImageGenerationRequest {
     prompt: string;
     aspectRatio?: string;
     apiKey: string;
-    projectId: string;
-    location?: string;
+    projectId?: string;
     resolution?: '2k' | '4k';
-}
-
-/**
- * Convert aspect ratio to Imagen format
- */
-function convertAspectRatio(ratio: string): string {
-    switch (ratio) {
-        case '1:1':
-            return '1:1';
-        case '9:16':
-            return '9:16';
-        case '16:9':
-            return '16:9';
-        default:
-            return '1:1';
-    }
-}
-
-/**
- * Enhance prompt with resolution keywords
- */
-function enhancePromptWithResolution(prompt: string, resolution: '2k' | '4k'): string {
-    if (resolution === '4k') {
-        return `${prompt}, (4k, high resolution:1.5, ultra detailed, sharp focus, crystal clear)`;
-    }
-    return prompt;
 }
 
 export async function POST(request: NextRequest) {
@@ -40,62 +13,40 @@ export async function POST(request: NextRequest) {
         const body: ImageGenerationRequest = await request.json();
         const {
             prompt,
-            aspectRatio = '1:1',
             apiKey,
-            projectId,
-            location = 'us-central1',
-            resolution = '2k',
         } = body;
 
         if (!apiKey) {
             return NextResponse.json(
-                { error: 'API key is required' },
+                { error: 'Gemini API key is required' },
                 { status: 400 }
             );
         }
 
-        if (!projectId) {
-            return NextResponse.json(
-                { error: 'Google Cloud Project ID is required' },
-                { status: 400 }
-            );
-        }
+        console.log('🎨 Generating with Gemini (Nano Banana Pro)...');
+        console.log('Prompt:', prompt);
 
-        const imagenRatio = convertAspectRatio(aspectRatio);
-        const enhancedPrompt = enhancePromptWithResolution(prompt, resolution);
+        // Gemini API endpoint for image generation
+        // Using gemini-3-pro-image model (Nano Banana Pro)
+        const endpoint = 'https://generativelanguage.googleapis.com/v1beta/models/gemini-3-pro-image:generateContent';
 
-        console.log('🎨 Generating with Vertex AI Imagen 3 (Nano Banana Pro)...');
-        console.log('Project ID:', projectId);
-        console.log('Location:', location);
-        console.log('Prompt:', enhancedPrompt);
-        console.log('Aspect Ratio:', imagenRatio);
-
-        // Vertex AI Imagen 3 API endpoint with Project ID
-        const endpoint = `https://${location}-aiplatform.googleapis.com/v1/projects/${projectId}/locations/${location}/publishers/google/models/imagen-3.0-generate-001:predict`;
-
-        // Prepare request payload for Imagen 3
         const requestPayload = {
-            instances: [
-                {
-                    prompt: enhancedPrompt,
-                }
-            ],
-            parameters: {
-                sampleCount: 1,
-                aspectRatio: imagenRatio,
-                safetyFilterLevel: "block_few",
-                personGeneration: "allow_adult",
+            contents: [{
+                parts: [{
+                    text: prompt
+                }]
+            }],
+            generationConfig: {
+                responseModalities: ["IMAGE"]
             }
         };
 
-        console.log('📡 Calling Vertex AI endpoint:', endpoint);
+        console.log('📡 Calling Gemini API...');
 
-        // Make request to Vertex AI with API Key as query parameter
-        const apiUrl = `${endpoint}?key=${apiKey}`;
-
-        const response = await fetch(apiUrl, {
+        const response = await fetch(endpoint, {
             method: 'POST',
             headers: {
+                'x-goog-api-key': apiKey,
                 'Content-Type': 'application/json',
             },
             body: JSON.stringify(requestPayload),
@@ -103,43 +54,41 @@ export async function POST(request: NextRequest) {
 
         if (!response.ok) {
             const errorText = await response.text();
-            console.error('❌ Vertex AI Error Response:', errorText);
-
-            // Handle specific error codes
-            if (response.status === 404) {
-                return NextResponse.json(
-                    {
-                        error: 'Vertex AI 엔드포인트를 찾을 수 없습니다 (Error 404). Project ID가 올바른지 확인해주세요.',
-                        details: errorText,
-                        projectId: projectId
-                    },
-                    { status: 404 }
-                );
-            }
-
-            if (response.status === 403) {
-                return NextResponse.json(
-                    {
-                        error: 'Vertex AI API 권한이 없습니다 (Error 403). GCP에서 Vertex AI API를 활성화하고 결제를 연결해주세요.',
-                        details: errorText
-                    },
-                    { status: 403 }
-                );
-            }
+            console.error('❌ Gemini API Error Response:', errorText);
 
             if (response.status === 401) {
                 return NextResponse.json(
                     {
-                        error: 'API 인증에 실패했습니다 (Error 401). API Key가 올바른지 확인해주세요.',
+                        error: 'API 인증에 실패했습니다 (Error 401). Gemini API Key가 올바른지 확인해주세요.',
                         details: errorText
                     },
                     { status: 401 }
                 );
             }
 
+            if (response.status === 429) {
+                return NextResponse.json(
+                    {
+                        error: 'API 호출 한도를 초과했습니다 (Error 429). 잠시 후 다시 시도해주세요.',
+                        details: errorText
+                    },
+                    { status: 429 }
+                );
+            }
+
+            if (response.status === 400) {
+                return NextResponse.json(
+                    {
+                        error: '이미지 생성 요청이 거부되었습니다. 프롬프트 내용을 확인해주세요.',
+                        details: errorText
+                    },
+                    { status: 400 }
+                );
+            }
+
             return NextResponse.json(
                 {
-                    error: `Vertex AI API 호출 실패 (HTTP ${response.status})`,
+                    error: `Gemini API 호출 실패 (HTTP ${response.status})`,
                     details: errorText
                 },
                 { status: response.status }
@@ -147,26 +96,29 @@ export async function POST(request: NextRequest) {
         }
 
         const result = await response.json();
-        console.log('✅ Vertex AI Response received');
+        console.log('✅ Gemini Response received');
 
         // Extract image from response
-        if (result.predictions && result.predictions.length > 0) {
-            const prediction = result.predictions[0];
+        // Gemini returns base64 image in candidates[0].content.parts[0].inlineData.data
+        if (result.candidates && result.candidates.length > 0) {
+            const candidate = result.candidates[0];
+            if (candidate.content && candidate.content.parts) {
+                for (const part of candidate.content.parts) {
+                    if (part.inlineData && part.inlineData.data) {
+                        const base64Data = part.inlineData.data;
+                        const mimeType = part.inlineData.mimeType || 'image/png';
 
-            // Vertex AI returns base64 encoded image
-            if (prediction.bytesBase64Encoded) {
-                const base64Data = prediction.bytesBase64Encoded;
-                const mimeType = prediction.mimeType || 'image/png';
-
-                console.log('✅ Vertex AI Imagen 3 (Nano Banana Pro) generation successful');
-                return NextResponse.json({
-                    url: `data:${mimeType};base64,${base64Data}`,
-                    fallback: false
-                });
+                        console.log('✅ Gemini (Nano Banana Pro) generation successful');
+                        return NextResponse.json({
+                            url: `data:${mimeType};base64,${base64Data}`,
+                            fallback: false
+                        });
+                    }
+                }
             }
         }
 
-        throw new Error('No image data in Vertex AI response');
+        throw new Error('No image data in Gemini response');
 
     } catch (error: any) {
         console.error('❌ Image generation error:', error);
@@ -175,7 +127,7 @@ export async function POST(request: NextRequest) {
 
         return NextResponse.json(
             {
-                error: `Vertex AI Imagen 3 호출 중 오류 발생: ${errorMsg}`,
+                error: `Gemini (Nano Banana Pro) 호출 중 오류 발생: ${errorMsg}`,
                 details: error.stack
             },
             { status: 500 }

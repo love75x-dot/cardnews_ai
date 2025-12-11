@@ -1,14 +1,14 @@
 /**
- * Image Generation with Vertex AI Imagen 3 (Nano Banana Pro)
- * Requires Google Cloud Project ID and API Key
- * High quality image generation with Vertex AI
+ * Image Generation with Gemini API (Nano Banana Pro)
+ * Uses Gemini 3 Pro Image model with simple API Key authentication
+ * High quality image generation
  */
 
 export interface ImageGenerationOptions {
     prompt: string;
     aspectRatio?: string;
     apiKey: string;  // Required - Gemini API Key
-    projectId: string;  // Required - GCP Project ID
+    projectId?: string;  // Optional - not used for Gemini
     location?: string;
     resolution?: '2k' | '4k';
 }
@@ -70,8 +70,8 @@ async function generateImagenImage(
 }
 
 /**
- * Generate a single card image using Vertex AI Imagen 3 (Nano Banana Pro)
- * Requires valid API key and Project ID
+ * Generate a single card image using Gemini (Nano Banana Pro)
+ * Requires valid Gemini API key
  */
 export async function generateCardImage(
     options: ImageGenerationOptions
@@ -87,23 +87,18 @@ export async function generateCardImage(
 
     // Validate required parameters
     if (!apiKey) {
-        throw new Error('API Key가 필요합니다. 설정에서 입력해주세요.');
+        throw new Error('Gemini API Key가 필요합니다. 설정에서 입력해주세요.');
     }
 
-    if (!projectId) {
-        throw new Error('Google Cloud Project ID가 필요합니다. 설정에서 입력해주세요.');
-    }
+    console.log('🚀 Using Gemini (Nano Banana Pro)');
+    console.log('🎌 High quality image generation');
 
-    console.log('🚀 Using Vertex AI Imagen 3 (Nano Banana Pro)');
-    console.log('💰 Google Cloud billing will apply');
-    console.log('Project ID:', projectId);
-
-    // Call Vertex AI Imagen 3
+    // Call Gemini API
     const imageUrl = await generateImagenImage(
         prompt,
         aspectRatio,
         apiKey,
-        projectId,
+        projectId || '',  // Optional parameter
         location,
         resolution
     );
@@ -116,7 +111,7 @@ export async function generateCardImage(
 
 /**
  * Generate images for multiple cards in parallel
- * All using Vertex AI Imagen 3 (Nano Banana Pro)
+ * All using Gemini (Nano Banana Pro)
  */
 export async function generateCardImages(
     cards: Array<{ imagePrompt: string }>,
@@ -127,20 +122,19 @@ export async function generateCardImages(
     resolution: '2k' | '4k' = '2k'
 ): Promise<ImageResult[]> {
     // Validate required parameters
-    if (!apiKey || !projectId) {
-        throw new Error('API Key와 Google Cloud Project ID가 모두 필요합니다. 설정에서 입력해주세요.');
+    if (!apiKey) {
+        throw new Error('Gemini API Key가 필요합니다. 설정에서 입력해주세요.');
     }
 
-    // After validation, both are guaranteed to be strings
+    // After validation, apiKey is guaranteed to be string
     const validatedApiKey: string = apiKey;
-    const validatedProjectId: string = projectId;
 
     const imagePromises = cards.map((card) =>
         generateCardImage({
             prompt: card.imagePrompt,
             aspectRatio,
             apiKey: validatedApiKey,
-            projectId: validatedProjectId,
+            projectId,
             location,
             resolution,
         })
