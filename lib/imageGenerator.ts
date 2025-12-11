@@ -1,11 +1,8 @@
 /**
- * Image Generation with Google Imagen 3 and Pollinations Fallback
+ * Image Generation with Pollinations AI
  * 
- * Primary: Google Imagen 3 (requires paid API key)
- * Fallback: Pollinations AI (free, no API key required)
+ * Using Pollinations as primary image generator (free, fast, no API key needed)
  */
-
-import { GoogleGenerativeAI } from '@google/generative-ai';
 
 export interface ImageGenerationOptions {
     prompt: string;
@@ -35,7 +32,7 @@ function getAspectRatioDimensions(ratio: string): [number, number] {
 }
 
 /**
- * Generate image using Pollinations AI (Free fallback)
+ * Generate image using Pollinations AI
  */
 async function generatePollinationsImage(
     prompt: string,
@@ -55,89 +52,30 @@ async function generatePollinationsImage(
 }
 
 /**
- * Generate a single card image
- * Tries Imagen 3 first, falls back to Pollinations on error
+ * Generate a single card image using Pollinations AI
  */
 export async function generateCardImage(
     options: ImageGenerationOptions
 ): Promise<ImageResult> {
-    const { prompt, aspectRatio = '1:1', apiKey } = options;
-
-    // If no API key, use Pollinations directly
-    if (!apiKey) {
-        return {
-            url: await generatePollinationsImage(prompt, aspectRatio),
-            fallback: true
-        };
-    }
+    const { prompt, aspectRatio = '1:1' } = options;
 
     try {
-        // Try Google Imagen 3
-        const genAI = new GoogleGenerativeAI(apiKey);
+        console.log('🎨 Generating image with Pollinations AI...');
+        console.log('Prompt:', prompt);
+        console.log('Aspect Ratio:', aspectRatio);
 
-        // Note: Imagen 3 API structure may vary
-        // This is an attempt based on available documentation
-        const model = genAI.getGenerativeModel({
-            model: 'imagen-3.0-generate-001'
-        });
+        const imageUrl = await generatePollinationsImage(prompt, aspectRatio);
 
-        // Attempt to generate image
-        const result = await model.generateContent({
-            contents: [{
-                role: 'user',
-                parts: [{
-                    text: `Generate an image: ${prompt}. Aspect ratio: ${aspectRatio}`
-                }]
-            }]
-        });
+        console.log('✅ Image generated successfully');
 
-        // Extract image URL from response
-        const response = await result.response;
-        const candidates = response.candidates;
-
-        if (candidates && candidates[0]) {
-            // Try to find image URL in response
-            const imageUrl = extractImageUrl(candidates[0]);
-
-            if (imageUrl) {
-                return {
-                    url: imageUrl,
-                    fallback: false
-                };
-            }
-        }
-
-        // If no image URL found, fallback
-        throw new Error('No image URL in Imagen response');
-
-    } catch (error) {
-        console.warn('Imagen 3 failed, falling back to Pollinations:', error);
-
-        // Fallback to Pollinations
         return {
-            url: await generatePollinationsImage(prompt, aspectRatio),
-            fallback: true
+            url: imageUrl,
+            fallback: false
         };
+    } catch (error) {
+        console.error('❌ Image generation failed:', error);
+        throw error;
     }
-}
-
-/**
- * Extract image URL from Imagen response (helper function)
- */
-function extractImageUrl(candidate: any): string | null {
-    // This may need adjustment based on actual API response structure
-    if (candidate.content?.parts) {
-        for (const part of candidate.content.parts) {
-            if (part.inlineData?.mimeType?.startsWith('image/')) {
-                // Convert base64 to data URL
-                return `data:${part.inlineData.mimeType};base64,${part.inlineData.data}`;
-            }
-            if (part.fileData?.fileUri) {
-                return part.fileData.fileUri;
-            }
-        }
-    }
-    return null;
 }
 
 /**
