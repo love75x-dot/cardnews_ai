@@ -27,8 +27,8 @@ export async function POST(request: NextRequest) {
         console.log('Prompt:', prompt);
 
         // Gemini API endpoint for image generation
-        // Using gemini-3-pro-image model (Nano Banana Pro)
-        const endpoint = 'https://generativelanguage.googleapis.com/v1beta/models/gemini-3-pro-image:generateContent';
+        // Using gemini-3-pro-image-preview model (Nano Banana Pro - official ID)
+        const endpoint = 'https://generativelanguage.googleapis.com/v1beta/models/gemini-3-pro-image-preview:generateContent';
 
         const requestPayload = {
             contents: [{
