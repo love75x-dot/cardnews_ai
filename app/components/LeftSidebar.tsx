@@ -1,28 +1,22 @@
 'use client';
 
-import React from 'react';
+import React, { useState } from 'react';
 import { Textarea } from '@/components/ui/textarea';
 import { Input } from '@/components/ui/input';
-import { Label } from '@/components/ui/label';
 import { Button } from '@/components/ui/button';
-import {
-    Select,
-    SelectContent,
-    SelectItem,
-    SelectTrigger,
-    SelectValue,
-} from '@/components/ui/select';
-import { Sparkles, Loader2 } from 'lucide-react';
+import { Label } from '@/components/ui/label';
+import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from '@/components/ui/select';
+import { Loader2, RotateCcw, Maximize2 } from 'lucide-react';
 
 interface LeftSidebarProps {
     onGenerate: () => void;
     isLoading: boolean;
     topic: string;
-    onTopicChange: (topic: string) => void;
+    onTopicChange: (value: string) => void;
     sceneCount: number;
-    onSceneCountChange: (count: number) => void;
+    onSceneCountChange: (value: number) => void;
     aspectRatio: string;
-    onAspectRatioChange: (ratio: string) => void;
+    onAspectRatioChange: (value: string) => void;
 }
 
 export function LeftSidebar({
@@ -33,98 +27,121 @@ export function LeftSidebar({
     sceneCount,
     onSceneCountChange,
     aspectRatio,
-    onAspectRatioChange
+    onAspectRatioChange,
 }: LeftSidebarProps) {
-    const [artStyle, setArtStyle] = React.useState('modern-minimal');
+    const characterCount = topic.length;
+
+    const handleReset = () => {
+        if (confirm('모든 입력 내용을 초기화하시겠습니까?')) {
+            onTopicChange('');
+            onSceneCountChange(4);
+            onAspectRatioChange('1:1');
+        }
+    };
 
     return (
-        <aside className="w-[380px] border-r border-[#27272a] flex flex-col bg-[#0b0c15]">
-            {/* Title */}
-            <div className="p-6 border-b border-[#27272a]">
-                <h1 className="text-2xl font-bold text-white">AI 카드뉴스 생성기</h1>
-            </div>
+        <aside className="w-[380px] border-r border-[#27272a] bg-[#0b0c15] overflow-y-auto">
+            <div className="p-6 space-y-6">
+                {/* Header */}
+                <div className="text-center">
+                    <h1 className="text-2xl font-bold text-white">AI 카드뉴스 생성기</h1>
+                </div>
 
-            {/* Scrollable content area */}
-            <div className="flex-1 overflow-y-auto p-6 space-y-6">
-                {/* Topic Input */}
-                <div className="space-y-2">
-                    <Label className="text-sm text-gray-300">주제 입력</Label>
-                    <Textarea
-                        value={topic}
-                        onChange={(e) => onTopicChange(e.target.value)}
-                        placeholder="카드뉴스로 만들 주제나 대본을 입력하세요..."
-                        className="min-h-[150px] bg-white/5 border-[#27272a] text-white placeholder:text-gray-500 resize-none focus-visible:ring-blue-500"
-                    />
+                {/* Reset Button */}
+                <Button
+                    onClick={handleReset}
+                    variant="outline"
+                    className="w-full py-3 border-red-900/50 text-red-500 hover:bg-red-900/10 hover:text-red-400"
+                >
+                    <RotateCcw className="w-4 h-4 mr-2" />
+                    전체 초기화
+                </Button>
+
+                {/* Content Input Section */}
+                <div className="space-y-3">
+                    {/* Section Header with Expand Button */}
+                    <div className="flex items-center justify-between">
+                        <h2 className="text-base font-bold text-blue-500">1. 콘텐츠 입력</h2>
+                        <Button
+                            variant="ghost"
+                            size="sm"
+                            className="text-gray-400 hover:text-white h-7 px-2"
+                        >
+                            <Maximize2 className="w-3 h-3 mr-1" />
+                            확대
+                        </Button>
+                    </div>
+
+                    {/* Textarea with Character Counter */}
+                    <div className="relative">
+                        <Textarea
+                            value={topic}
+                            onChange={(e) => onTopicChange(e.target.value)}
+                            placeholder="카드뉴스로 만들 주제나 대본을 입력하세요..."
+                            className="min-h-[180px] bg-slate-800 border-none text-white resize-none focus-visible:ring-1 focus-visible:ring-blue-500"
+                        />
+                        {/* Character Counter */}
+                        <div className="absolute bottom-2 right-3 text-xs text-gray-500">
+                            {characterCount}자
+                        </div>
+                    </div>
                 </div>
 
                 {/* Scene Count */}
                 <div className="space-y-2">
-                    <Label className="text-sm text-gray-300">장면 수</Label>
+                    <Label htmlFor="scene-count" className="text-sm font-medium text-gray-300">
+                        2. 장면 수
+                    </Label>
                     <Input
+                        id="scene-count"
                         type="number"
+                        min="1"
+                        max="10"
                         value={sceneCount}
-                        onChange={(e) => onSceneCountChange(Number(e.target.value))}
-                        className="bg-white/5 border-[#27272a] text-white focus-visible:ring-blue-500"
-                        min={1}
-                        max={10}
+                        onChange={(e) => onSceneCountChange(parseInt(e.target.value) || 1)}
+                        className="bg-[#1a1b26] border-[#27272a] text-white"
                     />
                 </div>
 
                 {/* Aspect Ratio */}
                 <div className="space-y-2">
-                    <Label className="text-sm text-gray-300">이미지 비율</Label>
+                    <Label htmlFor="aspect-ratio" className="text-sm font-medium text-gray-300">
+                        3. 이미지 비율
+                    </Label>
                     <Select value={aspectRatio} onValueChange={onAspectRatioChange}>
-                        <SelectTrigger className="bg-white/5 border-[#27272a] text-white focus:ring-blue-500">
+                        <SelectTrigger id="aspect-ratio" className="bg-[#1a1b26] border-[#27272a] text-white">
                             <SelectValue />
                         </SelectTrigger>
-                        <SelectContent className="bg-[#1a1b26] border-[#27272a]">
-                            <SelectItem value="1:1" className="text-white focus:bg-white/10 focus:text-white">
-                                1:1 정사각
-                            </SelectItem>
-                            <SelectItem value="9:16" className="text-white focus:bg-white/10 focus:text-white">
-                                9:16 세로형
-                            </SelectItem>
-                            <SelectItem value="16:9" className="text-white focus:bg-white/10 focus:text-white">
-                                16:9 가로형
-                            </SelectItem>
+                        <SelectContent className="bg-[#1a1b26] border-[#27272a] text-white">
+                            <SelectItem value="1:1">1:1 (정사각형)</SelectItem>
+                            <SelectItem value="9:16">9:16 (세로)</SelectItem>
+                            <SelectItem value="16:9">16:9 (가로)</SelectItem>
                         </SelectContent>
                     </Select>
                 </div>
 
                 {/* Art Style */}
                 <div className="space-y-2">
-                    <Label className="text-sm text-gray-300">아트 스타일</Label>
-                    <Select value={artStyle} onValueChange={setArtStyle}>
-                        <SelectTrigger className="bg-white/5 border-[#27272a] text-white focus:ring-blue-500">
+                    <Label htmlFor="art-style" className="text-sm font-medium text-gray-300">
+                        4. 아트 스타일
+                    </Label>
+                    <Select defaultValue="modern">
+                        <SelectTrigger id="art-style" className="bg-[#1a1b26] border-[#27272a] text-white">
                             <SelectValue />
                         </SelectTrigger>
-                        <SelectContent className="bg-[#1a1b26] border-[#27272a]">
-                            <SelectItem value="modern-minimal" className="text-white focus:bg-white/10 focus:text-white">
-                                모던 미니멀
-                            </SelectItem>
-                            <SelectItem value="watercolor" className="text-white focus:bg-white/10 focus:text-white">
-                                수채화
-                            </SelectItem>
-                            <SelectItem value="3d-render" className="text-white focus:bg-white/10 focus:text-white">
-                                3D 렌더링
-                            </SelectItem>
-                            <SelectItem value="illustration" className="text-white focus:bg-white/10 focus:text-white">
-                                일러스트
-                            </SelectItem>
-                            <SelectItem value="realistic" className="text-white focus:bg-white/10 focus:text-white">
-                                실사
-                            </SelectItem>
+                        <SelectContent className="bg-[#1a1b26] border-[#27272a] text-white">
+                            <SelectItem value="modern">모던 미니멀</SelectItem>
+                            <SelectItem value="flat">플랫 디자인</SelectItem>
+                            <SelectItem value="3d">3D 렌더</SelectItem>
                         </SelectContent>
                     </Select>
                 </div>
-            </div>
 
-            {/* Fixed Bottom Button */}
-            <div className="p-6 border-t border-[#27272a]">
+                {/* Generate Button */}
                 <Button
                     onClick={onGenerate}
-                    disabled={isLoading}
-                    className="w-full h-12 bg-gradient-to-r from-purple-600 to-blue-600 hover:from-purple-700 hover:to-blue-700 text-white font-semibold transition-all shadow-lg shadow-purple-500/20 disabled:opacity-50 disabled:cursor-not-allowed"
+                    disabled={isLoading || !topic.trim()}
+                    className="w-full bg-gradient-to-r from-purple-600 to-blue-600 hover:from-purple-700 hover:to-blue-700 text-white py-6 text-base font-semibold"
                 >
                     {isLoading ? (
                         <>
@@ -132,10 +149,7 @@ export function LeftSidebar({
                             생성 중...
                         </>
                     ) : (
-                        <>
-                            <Sparkles className="w-5 h-5 mr-2" />
-                            생성하기
-                        </>
+                        '카드 생성하기'
                     )}
                 </Button>
             </div>
