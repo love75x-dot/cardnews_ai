@@ -10,12 +10,14 @@ import { generateCardImages } from '@/lib/imageGenerator';
 import { useToast } from '@/hooks/use-toast';
 
 const API_KEY_STORAGE_KEY = 'gemini_api_key';
+const PROJECT_ID_STORAGE_KEY = 'gcp_project_id';
 
 export default function Home() {
   const { toast } = useToast();
   const [isLoading, setIsLoading] = useState(false);
   const [cards, setCards] = useState<Array<{ id: number; text: string; imagePrompt?: string; imageUrl?: string }>>([]);
   const [apiKey, setApiKey] = useState('');
+  const [projectId, setProjectId] = useState('');
   const [isSettingsOpen, setIsSettingsOpen] = useState(false);
   const [isManualOpen, setIsManualOpen] = useState(false);
   const [selectedSceneIndex, setSelectedSceneIndex] = useState(0);
@@ -25,12 +27,16 @@ export default function Home() {
   const [sceneCount, setSceneCount] = useState(4);
   const [aspectRatio, setAspectRatio] = useState('1:1');
 
-  // Load API key from localStorage on mount
+  // Load API key and Project ID from localStorage on mount
   useEffect(() => {
     if (typeof window !== 'undefined') {
       const savedKey = localStorage.getItem(API_KEY_STORAGE_KEY);
+      const savedProject = localStorage.getItem(PROJECT_ID_STORAGE_KEY);
       if (savedKey) {
         setApiKey(savedKey);
+      }
+      if (savedProject) {
+        setProjectId(savedProject);
       }
     }
   }, []);
@@ -67,11 +73,13 @@ export default function Home() {
         sceneCount
       );
 
-      // Step 2: Generate images with Imagen 3 (with Pollinations fallback)
+      // Step 2: Generate images with Imagen 3 (Vertex AI) or Pollinations fallback
       const imageResults = await generateCardImages(
         generatedContent,
         aspectRatio,
-        apiKey
+        apiKey,
+        projectId,
+        'us-central1' // Vertex AI location
       );
 
       // Check if any image used fallback
@@ -108,8 +116,9 @@ export default function Home() {
     }
   };
 
-  const handleApiKeySave = (key: string) => {
+  const handleApiKeySave = (key: string, project: string) => {
     setApiKey(key);
+    setProjectId(project);
   };
 
   return (
