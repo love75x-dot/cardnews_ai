@@ -117,7 +117,6 @@ export default function Home() {
 
     setIsLoading(true);
     startTimer();
-    let hadFallback = false;
 
     try {
       // Stage 1: Content Planning (0%)
@@ -155,9 +154,6 @@ export default function Home() {
         refImages
       );
 
-      // Check if any image used fallback
-      hadFallback = imageResults.some(r => r.fallback);
-
       // Stage 4: Text Overlay (80%)
       setProgressStage(3);
       const newCards = generatedContent.map((content, index) => ({
@@ -177,15 +173,6 @@ export default function Home() {
         title: "✅ 생성 완료!",
         description: `${newCards.length}개의 카드가 ${elapsedTime}초 만에 생성되었습니다.`,
       });
-
-      // Show fallback notification if needed
-      if (hadFallback) {
-        toast({
-          title: "ℹ️ 무료 모델 사용",
-          description: "Imagen 3를 사용할 수 없어 Pollinations AI로 생성되었습니다.",
-          variant: "default",
-        });
-      }
     } catch (error) {
       console.error('Generation error:', error);
 

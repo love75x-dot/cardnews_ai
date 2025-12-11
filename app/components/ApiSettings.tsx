@@ -53,23 +53,14 @@ export function ApiSettings({ open, onOpenChange, onSave }: ApiSettingsProps) {
             return;
         }
 
-        if (!projectId.trim()) {
-            toast({
-                title: "오류",
-                description: "GCP Project ID를 입력해주세요.",
-                variant: "destructive",
-            });
-            return;
-        }
-
         localStorage.setItem(API_KEY_STORAGE_KEY, apiKey);
-        localStorage.setItem(PROJECT_ID_STORAGE_KEY, projectId);
+        localStorage.setItem(PROJECT_ID_STORAGE_KEY, projectId); // Keep for backward compatibility
         onSave(apiKey, projectId);
         setIsSaved(true);
 
         toast({
             title: "✅ 설정이 저장되었습니다",
-            description: "Imagen 3 (Vertex AI)를 사용할 준비가 되었습니다.",
+            description: "AI 카드뉴스 생성을 시작할 수 있습니다.",
         });
 
         onOpenChange(false);
@@ -91,7 +82,7 @@ export function ApiSettings({ open, onOpenChange, onSave }: ApiSettingsProps) {
                             <Shield className="w-5 h-5 text-blue-400 mt-0.5 flex-shrink-0" />
                             <div>
                                 <p className="text-sm text-blue-100">
-                                    모든 API Key와 Project ID는 <strong>브라우저 LocalStorage</strong>에만 저장됩니다.
+                                    모든 API Key는 <strong>브라우저 LocalStorage</strong>에만 저장됩니다.
                                     서버나 데이터베이스에 전송되지 않으며, 귀하의 컴퓨터에만 안전하게 보관됩니다.
                                 </p>
                             </div>
@@ -122,16 +113,16 @@ export function ApiSettings({ open, onOpenChange, onSave }: ApiSettingsProps) {
                             <h3 className="text-lg font-semibold flex items-center gap-2">
                                 🖌️ 이미지 생성 AI
                             </h3>
-                            <p className="text-base font-medium text-gray-200">Google Imagen 3</p>
+                            <p className="text-base font-medium text-gray-200">Pollinations AI</p>
                             <div className="inline-block">
-                                <span className="text-xs font-semibold text-purple-400 bg-purple-900/30 px-2 py-1 rounded">
-                                    ✨ Vertex AI (유료)
+                                <span className="text-xs font-semibold text-green-400 bg-green-900/30 px-2 py-1 rounded">
+                                    ✨ 무료
                                 </span>
                             </div>
                             <ul className="text-sm text-gray-400 space-y-1 mt-2">
+                                <li>• 완전 무료</li>
+                                <li>• API Key 불필요</li>
                                 <li>• 고품질 이미지 생성</li>
-                                <li>• Vertex AI 필요</li>
-                                <li className="text-red-400 font-semibold">• GCP 결제 활성화 필수</li>
                             </ul>
                         </div>
                     </div>
@@ -182,45 +173,18 @@ export function ApiSettings({ open, onOpenChange, onSave }: ApiSettingsProps) {
                         </a>
                     </div>
 
-                    {/* GCP Project ID Input */}
-                    <div className="space-y-3">
-                        <Label htmlFor="project-id" className="text-sm font-medium text-gray-200">
-                            🏗️ GCP Project ID (Imagen용)
-                        </Label>
-
-                        <Input
-                            id="project-id"
-                            type="text"
-                            value={projectId}
-                            onChange={(e) => setProjectId(e.target.value)}
-                            placeholder="your-project-id"
-                            className="bg-slate-800 border-slate-700 text-white"
-                        />
-
-                        <a
-                            href="https://console.cloud.google.com/projectselector2"
-                            target="_blank"
-                            rel="noopener noreferrer"
-                            className="inline-flex items-center gap-1 text-sm text-blue-400 hover:text-blue-300 transition-colors"
-                        >
-                            GCP 프로젝트 생성/확인하기
-                            <ExternalLink className="w-3 h-3" />
-                        </a>
-                    </div>
-
-                    {/* Payment Warning */}
-                    <div className="bg-yellow-900/20 border border-yellow-700/50 rounded-lg p-4">
+                    {/* Info Notice */}
+                    <div className="bg-green-900/20 border border-green-700/50 rounded-lg p-4">
                         <div className="flex items-start gap-3">
-                            <span className="text-yellow-500 text-xl flex-shrink-0">⚠️</span>
+                            <span className="text-green-500 text-xl flex-shrink-0">ℹ️</span>
                             <div className="space-y-1">
-                                <p className="text-sm font-semibold text-yellow-200">
-                                    Google Cloud Vertex AI 설정 필요
+                                <p className="text-sm font-semibold text-green-200">
+                                    간단한 설정
                                 </p>
-                                <ul className="text-xs text-yellow-300/80 space-y-1">
-                                    <li>1. GCP 프로젝트 생성</li>
-                                    <li>2. Vertex AI API 활성화</li>
-                                    <li>3. 결제 계정 연결</li>
-                                    <li>4. Imagen 3 모델 사용 권한 확인</li>
+                                <ul className="text-xs text-green-300/80 space-y-1">
+                                    <li>• Gemini API Key만 있으면 사용 가능</li>
+                                    <li>• 이미지는 무료 AI로 자동 생성</li>
+                                    <li>• 추가 설정이나 결제 불필요</li>
                                 </ul>
                             </div>
                         </div>

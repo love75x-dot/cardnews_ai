@@ -1,7 +1,7 @@
 /**
- * Image Generation with Google Imagen 3 (Vertex AI)
- * Client-side wrapper that calls server API routes
- * With 30s timeout, resolution support, and reference images
+ * Image Generation with Pollinations AI
+ * Free, no API key required
+ * With resolution support and aspect ratio control
  */
 
 export interface ImageGenerationOptions {
@@ -36,7 +36,7 @@ function getAspectRatioDimensions(ratio: string): [number, number] {
 }
 
 /**
- * Generate image using Pollinations AI (Free fallback)
+ * Generate image using Pollinations AI (Free, no API key needed)
  */
 async function generatePollinationsImage(
     prompt: string,
@@ -61,62 +61,8 @@ async function generatePollinationsImage(
 }
 
 /**
- * Generate image using Google Imagen 3 via API route
- */
-async function generateImagenImage(
-    prompt: string,
-    aspectRatio: string,
-    apiKey: string,
-    projectId: string,
-    location: string,
-    resolution: '2k' | '4k',
-    referenceImages?: Array<{ base64: string; mode: string }>
-): Promise<string> {
-    try {
-        console.log('🎨 Generating with Imagen 3 via API...');
-
-        const response = await fetch('/api/generate-image', {
-            method: 'POST',
-            headers: {
-                'Content-Type': 'application/json',
-            },
-            body: JSON.stringify({
-                prompt,
-                aspectRatio,
-                apiKey,
-                projectId,
-                location,
-                resolution,
-                referenceImages
-            }),
-        });
-
-        if (!response.ok) {
-            const errorData = await response.json();
-            throw new Error(errorData.error || `HTTP ${response.status}`);
-        }
-
-        const data = await response.json();
-        console.log('✅ Imagen 3 generation successful');
-        return data.url;
-
-    } catch (error: any) {
-        console.error('❌ Imagen 3 error:', error);
-
-        // Re-throw timeout errors
-        if (error.message?.includes('지연')) {
-            throw error;
-        }
-
-        // For other errors, provide detailed message
-        const errorMsg = error.message || 'Unknown error';
-        throw new Error(`Imagen 3 실패: ${errorMsg}`);
-    }
-}
-
-/**
  * Generate a single card image
- * Tries Imagen 3 first, falls back to Pollinations on error
+ * Uses Pollinations AI - free and no authentication required
  */
 export async function generateCardImage(
     options: ImageGenerationOptions
@@ -124,58 +70,19 @@ export async function generateCardImage(
     const {
         prompt,
         aspectRatio = '1:1',
-        apiKey,
-        projectId,
-        location = 'us-central1',
         resolution = '2k',
-        referenceImages
     } = options;
 
-    // Try Imagen 3 if API key and project ID are provided
-    if (apiKey && projectId) {
-        try {
-            console.log('🚀 Using Google Imagen 3 (Vertex AI)');
-            const imageUrl = await generateImagenImage(
-                prompt,
-                aspectRatio,
-                apiKey,
-                projectId,
-                location,
-                resolution,
-                referenceImages
-            );
+    console.log('🎨 Generating image with Pollinations AI (free)');
+    console.log('Prompt:', prompt);
+    console.log('Aspect Ratio:', aspectRatio);
+    console.log('Resolution:', resolution);
 
-            return {
-                url: imageUrl,
-                fallback: false
-            };
-        } catch (error) {
-            console.warn('⚠️ Imagen 3 failed, falling back to Pollinations:', error);
-
-            // Don't fallback on timeout - throw error
-            if (error instanceof Error && error.message.includes('지연')) {
-                throw error;
-            }
-
-            // Fallback to Pollinations for other errors
-            const fallbackUrl = await generatePollinationsImage(
-                prompt,
-                aspectRatio,
-                resolution
-            );
-            return {
-                url: fallbackUrl,
-                fallback: true
-            };
-        }
-    }
-
-    // Use Pollinations if no API key
-    console.log('📦 Using Pollinations AI (free)');
     const imageUrl = await generatePollinationsImage(prompt, aspectRatio, resolution);
+
     return {
         url: imageUrl,
-        fallback: true
+        fallback: false  // No fallback needed, this is the primary method
     };
 }
 
@@ -205,3 +112,4 @@ export async function generateCardImages(
 
     return Promise.all(imagePromises);
 }
+
