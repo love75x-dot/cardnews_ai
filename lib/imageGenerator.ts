@@ -1,9 +1,8 @@
 /**
  * Image Generation with Google Imagen 3 (Vertex AI)
+ * Client-side wrapper that calls server API routes
  * With 30s timeout, resolution support, and reference images
  */
-
-import { VertexAI } from '@google-cloud/vertexai';
 
 export interface ImageGenerationOptions {
     prompt: string;
@@ -21,23 +20,6 @@ export interface ImageResult {
 }
 
 /**
- * Timeout wrapper - rejects if promise takes longer than timeoutMs
- */
-async function withTimeout<T>(
-    promise: Promise<T>,
-    timeoutMs: number = 30000,
-    errorMessage: string = '죄송합니다. Google 클라우드 응답이 지연되고 있습니다. 잠시 후 다시 시도해주세요.'
-): Promise<T> {
-    const timeout = new Promise<never>((_, reject) => {
-        setTimeout(() => {
-            reject(new Error(errorMessage));
-        }, timeoutMs);
-    });
-
-    return Promise.race([promise, timeout]);
-}
-
-/**
  * Get dimensions based on aspect ratio
  */
 function getAspectRatioDimensions(ratio: string): [number, number] {
@@ -51,32 +33,6 @@ function getAspectRatioDimensions(ratio: string): [number, number] {
         default:
             return [1024, 1024];
     }
-}
-
-/**
- * Convert aspect ratio to Imagen format
- */
-function convertAspectRatio(ratio: string): string {
-    switch (ratio) {
-        case '1:1':
-            return '1:1';
-        case '9:16':
-            return '9:16';
-        case '16:9':
-            return '16:9';
-        default:
-            return '1:1';
-    }
-}
-
-/**
- * Enhance prompt with resolution keywords
- */
-function enhancePromptWithResolution(prompt: string, resolution: '2k' | '4k'): string {
-    if (resolution === '4k') {
-        return `${prompt}, (4k, high resolution:1.5, ultra detailed, sharp focus, crystal clear)`;
-    }
-    return prompt; // 2k is default, no enhancement needed
 }
 
 /**
@@ -105,7 +61,7 @@ async function generatePollinationsImage(
 }
 
 /**
- * Generate image using Google Imagen 3 (Vertex AI)
+ * Generate image using Google Imagen 3 via API route
  */
 async function generateImagenImage(
     prompt: string,
@@ -117,70 +73,32 @@ async function generateImagenImage(
     referenceImages?: Array<{ base64: string; mode: string }>
 ): Promise<string> {
     try {
-        // Initialize Vertex AI
-        const vertexAI = new VertexAI({
-            project: projectId,
-            location: location,
+        console.log('🎨 Generating with Imagen 3 via API...');
+
+        const response = await fetch('/api/generate-image', {
+            method: 'POST',
+            headers: {
+                'Content-Type': 'application/json',
+            },
+            body: JSON.stringify({
+                prompt,
+                aspectRatio,
+                apiKey,
+                projectId,
+                location,
+                resolution,
+                referenceImages
+            }),
         });
 
-        // Get Imagen model
-        const generativeModel = vertexAI.getGenerativeModel({
-            model: 'imagen-3.0-generate-001',
-        });
-
-        const imagenRatio = convertAspectRatio(aspectRatio);
-        const enhancedPrompt = enhancePromptWithResolution(prompt, resolution);
-
-        console.log('🎨 Generating with Imagen 3...');
-        console.log('Prompt:', enhancedPrompt);
-        console.log('Aspect Ratio:', imagenRatio);
-        console.log('Resolution:', resolution);
-
-        // Build request
-        const request: any = {
-            prompt: enhancedPrompt,
-            aspectRatio: imagenRatio,
-            numberOfImages: 1,
-        };
-
-        // Add reference images if provided
-        if (referenceImages && referenceImages.length > 0) {
-            console.log(`Adding ${referenceImages.length} reference images`);
-            request.imageInputs = referenceImages.map(img => ({
-                image: {
-                    bytesBase64Encoded: img.base64
-                },
-                mode: img.mode
-            }));
+        if (!response.ok) {
+            const errorData = await response.json();
+            throw new Error(errorData.error || `HTTP ${response.status}`);
         }
 
-        // Generate with timeout
-        const result = await withTimeout(
-            generativeModel.generateContent(request),
-            30000,
-            '죄송합니다. Google Imagen 3 응답이 지연되고 있습니다. 잠시 후 다시 시도해주세요.'
-        );
-
-        // Extract image from response
-        if (result.response?.candidates?.[0]?.content?.parts?.[0]) {
-            const part = result.response.candidates[0].content.parts[0];
-
-            // Check for inline data (base64)
-            if (part.inlineData) {
-                const base64Data = part.inlineData.data;
-                const mimeType = part.inlineData.mimeType || 'image/png';
-                console.log('✅ Imagen 3 generation successful');
-                return `data:${mimeType};base64,${base64Data}`;
-            }
-
-            // Check for file URI
-            if (part.fileData?.fileUri) {
-                console.log('✅ Imagen 3 generation successful');
-                return part.fileData.fileUri;
-            }
-        }
-
-        throw new Error('No image data in Imagen response');
+        const data = await response.json();
+        console.log('✅ Imagen 3 generation successful');
+        return data.url;
 
     } catch (error: any) {
         console.error('❌ Imagen 3 error:', error);
@@ -192,8 +110,7 @@ async function generateImagenImage(
 
         // For other errors, provide detailed message
         const errorMsg = error.message || 'Unknown error';
-        const errorCode = error.code || error.status || 'UNKNOWN';
-        throw new Error(`Imagen 3 실패 (${errorCode}): ${errorMsg}`);
+        throw new Error(`Imagen 3 실패: ${errorMsg}`);
     }
 }
 

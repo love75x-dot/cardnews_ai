@@ -1,0 +1,781 @@
+﻿
+> cardnews_ai@0.1.0 build
+> next build
+
+   ??Next.js 16.0.8 (Turbopack)
+
+   Creating an optimized production build ...
+node.exe : 
+위치 줄:1 문자:1
++ & "C:\Program Files\nodejs/node.exe" "C:\Progra
+m Files\nodejs/node_mo ...
++ ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
+~~~~~~~~~~~~~~~~~~~~~~
+    + CategoryInfo          : NotSpecified: (:St 
+   ring) [], RemoteException
+    + FullyQualifiedErrorId : NativeCommandError
+ 
+> Build error occurred
+Error: Turbopack build failed with 11 errors:
+./app/components/ApiSettings.tsx:36:23
+Parsing ecmascript source code failed
+[0m [90m 34 |[39m             [36mconst[39m 
+savedKey [33m=[39m localStorage[33m.[39mgetIt
+em([33mAPI_KEY_STORAGE_KEY[39m)[33m;[39m
+ [90m 35 |[39m             [36mconst[39m save
+dProject [33m=[39m localStorage[33m.[39mgetIt
+em([33mPROJECT_ID_STORAGE_KEY[39m)[33m;[39m
+[31m[1m>[22m[39m[90m 36 |[39m             
+[36mif[39m (saved [33mKey[39m) {
+ [90m    |[39m                       [31m[1m^
+[22m[39m[31m[1m^[22m[39m[31m[1m^[22m[39
+m
+ [90m 37 |[39m         setApiKey(savedKey)[33m
+;[39m
+ [90m 38 |[39m     }
+ [90m 39 |[39m     [36mif[39m (savedProject) 
+{[0m
+
+Expected ')', got 'Key'
+
+Import traces:
+  Client Component Browser:
+    ./app/components/ApiSettings.tsx [Client Comp
+onent Browser]
+    ./app/page.tsx [Client Component Browser]
+    ./app/page.tsx [Server Component]
+
+  Client Component SSR:
+    ./app/components/ApiSettings.tsx [Client Comp
+onent SSR]
+    ./app/page.tsx [Client Component SSR]
+    ./app/page.tsx [Server Component]
+
+
+./node_modules/google-auth-library/build/src/auth
+/googleauth.js:29:25
+Module not found: Can't resolve 'child_process'
+[0m [90m 27 |[39m [33mObject[39m[33m.[39md
+efineProperty(exports[33m,[39m [32m"__esModule
+"[39m[33m,[39m { value[33m:[39m [36mtrue[3
+9m })[33m;[39m
+ [90m 28 |[39m exports[33m.[39m[33mGoogleAut
+h[39m [33m=[39m exports[33m.[39m[33mGoogleA
+uthExceptionMessages[39m [33m=[39m exports[33
+m.[39m[33mCLOUD_SDK_CLIENT_ID[39m [33m=[39m 
+[36mvoid[39m [35m0[39m[33m;[39m
+[31m[1m>[22m[39m[90m 29 |[39m [36mconst[3
+9m child_process_1 [33m=[39m require([32m"chil
+d_process"[39m)[33m;[39m
+ [90m    |[39m                         [31m[1
+m^[22m[39m[31m[1m^[22m[39m[31m[1m^[22m[
+39m[31m[1m^[22m[39m[31m[1m^[22m[39m[31m
+[1m^[22m[39m[31m[1m^[22m[39m[31m[1m^[22m
+[39m[31m[1m^[22m[39m[31m[1m^[22m[39m[31
+m[1m^[22m[39m[31m[1m^[22m[39m[31m[1m^[2
+2m[39m[31m[1m^[22m[39m[31m[1m^[22m[39m[
+31m[1m^[22m[39m[31m[1m^[22m[39m[31m[1m^
+[22m[39m[31m[1m^[22m[39m[31m[1m^[22m[39m
+[31m[1m^[22m[39m[31m[1m^[22m[39m[31m[1m
+^[22m[39m[31m[1m^[22m[39m
+ [90m 30 |[39m [36mconst[39m fs [33m=[39m r
+equire([32m"fs"[39m)[33m;[39m
+ [90m 31 |[39m [36mconst[39m gcpMetadata [33
+m=[39m require([32m"gcp-metadata"[39m)[33m;[
+39m
+ [90m 32 |[39m [36mconst[39m os [33m=[39m r
+equire([32m"os"[39m)[33m;[39m[0m
+
+
+
+Import traces:
+  Client Component Browser:
+    ./node_modules/google-auth-library/build/src/
+auth/googleauth.js [Client Component Browser]
+    ./node_modules/google-auth-library/build/src/
+index.js [Client Component Browser]
+    ./node_modules/@google-cloud/vertexai/build/s
+rc/vertex_ai.js [Client Component Browser]
+    ./node_modules/@google-cloud/vertexai/build/s
+rc/index.js [Client Component Browser]
+    ./lib/imageGenerator.ts [Client Component Bro
+wser]
+    ./app/page.tsx [Client Component Browser]
+    ./app/page.tsx [Server Component]
+
+  Client Component SSR:
+    ./node_modules/google-auth-library/build/src/
+auth/googleauth.js [Client Component SSR]
+    ./node_modules/google-auth-library/build/src/
+index.js [Client Component SSR]
+    ./node_modules/@google-cloud/vertexai/build/s
+rc/vertex_ai.js [Client Component SSR]
+    ./node_modules/@google-cloud/vertexai/build/s
+rc/index.js [Client Component SSR]
+    ./lib/imageGenerator.ts [Client Component SSR
+]
+    ./app/page.tsx [Client Component SSR]
+    ./app/page.tsx [Server Component]
+
+https://nextjs.org/docs/messages/module-not-found
+
+
+./node_modules/google-auth-library/build/src/auth
+/pluggable-auth-handler.js:19:22
+Module not found: Can't resolve 'child_process'
+[0m [90m 17 |[39m [36mconst[39m pluggable_au
+th_client_1 [33m=[39m require([32m"./pluggable
+-auth-client"[39m)[33m;[39m
+ [90m 18 |[39m [36mconst[39m executable_respo
+nse_1 [33m=[39m require([32m"./executable-resp
+onse"[39m)[33m;[39m
+[31m[1m>[22m[39m[90m 19 |[39m [36mconst[3
+9m childProcess [33m=[39m require([32m"child_p
+rocess"[39m)[33m;[39m
+ [90m    |[39m                      [31m[1m^
+[22m[39m[31m[1m^[22m[39m[31m[1m^[22m[39m
+[31m[1m^[22m[39m[31m[1m^[22m[39m[31m[1m
+^[22m[39m[31m[1m^[22m[39m[31m[1m^[22m[3
+9m[31m[1m^[22m[39m[31m[1m^[22m[39m[31m[
+1m^[22m[39m[31m[1m^[22m[39m[31m[1m^[22m
+[39m[31m[1m^[22m[39m[31m[1m^[22m[39m[31m
+[1m^[22m[39m[31m[1m^[22m[39m[31m[1m^[22
+m[39m[31m[1m^[22m[39m[31m[1m^[22m[39m[3
+1m[1m^[22m[39m[31m[1m^[22m[39m[31m[1m^[
+22m[39m[31m[1m^[22m[39m
+ [90m 20 |[39m [36mconst[39m fs [33m=[39m r
+equire([32m"fs"[39m)[33m;[39m
+ [90m 21 |[39m [90m/**[39m
+ [90m 22 |[39m [90m * A handler used to retrie
+ve 3rd party token responses from user defined[3
+9m[0m
+
+
+
+Import traces:
+  #1 [Client Component SSR]:
+    ./node_modules/google-auth-library/build/src/
+auth/pluggable-auth-handler.js
+    ./node_modules/google-auth-library/build/src/
+auth/googleauth.js [Client Component SSR]
+    ./node_modules/google-auth-library/build/src/
+index.js [Client Component SSR]
+    ./node_modules/@google-cloud/vertexai/build/s
+rc/vertex_ai.js [Client Component SSR]
+    ./node_modules/@google-cloud/vertexai/build/s
+rc/index.js [Client Component SSR]
+    ./lib/imageGenerator.ts [Client Component SSR
+]
+    ./app/page.tsx [Client Component SSR]
+    ./app/page.tsx [Server Component]
+
+  #2 [Client Component Browser]:
+    ./node_modules/google-auth-library/build/src/
+auth/pluggable-auth-handler.js [Client Component 
+Browser]
+    ./node_modules/google-auth-library/build/src/
+auth/pluggable-auth-client.js [Client Component B
+rowser]
+    ./node_modules/google-auth-library/build/src/
+index.js [Client Component Browser]
+    ./node_modules/@google-cloud/vertexai/build/s
+rc/vertex_ai.js [Client Component Browser]
+    ./node_modules/@google-cloud/vertexai/build/s
+rc/index.js [Client Component Browser]
+    ./lib/imageGenerator.ts [Client Component Bro
+wser]
+    ./app/page.tsx [Client Component Browser]
+    ./app/page.tsx [Server Component]
+
+  #3 [Client Component SSR]:
+    ./node_modules/google-auth-library/build/src/
+auth/pluggable-auth-handler.js [Client Component 
+SSR]
+    ./node_modules/google-auth-library/build/src/
+auth/pluggable-auth-client.js [Client Component S
+SR]
+    ./node_modules/google-auth-library/build/src/
+index.js [Client Component SSR]
+    ./node_modules/@google-cloud/vertexai/build/s
+rc/vertex_ai.js [Client Component SSR]
+    ./node_modules/@google-cloud/vertexai/build/s
+rc/index.js [Client Component SSR]
+    ./lib/imageGenerator.ts [Client Component SSR
+]
+    ./app/page.tsx [Client Component SSR]
+    ./app/page.tsx [Server Component]
+
+https://nextjs.org/docs/messages/module-not-found
+
+
+./node_modules/gcp-metadata/build/src/gcp-residen
+cy.js:24:14
+Module not found: Can't resolve 'fs'
+[0m [90m 22 |[39m exports[33m.[39misGoogleCo
+mputeEngine [33m=[39m isGoogleComputeEngine[33
+m;[39m
+ [90m 23 |[39m exports[33m.[39mdetectGCPResid
+ency [33m=[39m detectGCPResidency[33m;[39m
+[31m[1m>[22m[39m[90m 24 |[39m [36mconst[3
+9m fs_1 [33m=[39m require([32m"fs"[39m)[33m;
+[39m
+ [90m    |[39m              [31m[1m^[22m[39
+m[31m[1m^[22m[39m[31m[1m^[22m[39m[31m[1
+m^[22m[39m[31m[1m^[22m[39m[31m[1m^[22m[
+39m[31m[1m^[22m[39m[31m[1m^[22m[39m[31m
+[1m^[22m[39m[31m[1m^[22m[39m[31m[1m^[22m
+[39m[31m[1m^[22m[39m[31m[1m^[22m[39m
+ [90m 25 |[39m [36mconst[39m os_1 [33m=[39m
+ require([32m"os"[39m)[33m;[39m
+ [90m 26 |[39m [90m/**[39m
+ [90m 27 |[39m [90m * Known paths unique to Go
+ogle Compute Engine Linux instances[39m[0m
+
+
+
+Import traces:
+  Client Component Browser:
+    ./node_modules/gcp-metadata/build/src/gcp-res
+idency.js [Client Component Browser]
+    ./node_modules/gcp-metadata/build/src/index.j
+s [Client Component Browser]
+    ./node_modules/google-auth-library/build/src/
+index.js [Client Component Browser]
+    ./node_modules/@google-cloud/vertexai/build/s
+rc/vertex_ai.js [Client Component Browser]
+    ./node_modules/@google-cloud/vertexai/build/s
+rc/index.js [Client Component Browser]
+    ./lib/imageGenerator.ts [Client Component Bro
+wser]
+    ./app/page.tsx [Client Component Browser]
+    ./app/page.tsx [Server Component]
+
+  Client Component SSR:
+    ./node_modules/gcp-metadata/build/src/gcp-res
+idency.js [Client Component SSR]
+    ./node_modules/gcp-metadata/build/src/index.j
+s [Client Component SSR]
+    ./node_modules/google-auth-library/build/src/
+index.js [Client Component SSR]
+    ./node_modules/@google-cloud/vertexai/build/s
+rc/vertex_ai.js [Client Component SSR]
+    ./node_modules/@google-cloud/vertexai/build/s
+rc/index.js [Client Component SSR]
+    ./lib/imageGenerator.ts [Client Component SSR
+]
+    ./app/page.tsx [Client Component SSR]
+    ./app/page.tsx [Server Component]
+
+https://nextjs.org/docs/messages/module-not-found
+
+
+./node_modules/google-auth-library/build/src/auth
+/filesubjecttokensupplier.js:19:12
+Module not found: Can't resolve 'fs'
+[0m [90m 17 |[39m exports[33m.[39m[33mFileS
+ubjectTokenSupplier[39m [33m=[39m [36mvoid[3
+9m [35m0[39m[33m;[39m
+ [90m 18 |[39m [36mconst[39m util_1 [33m=[3
+9m require([32m"util"[39m)[33m;[39m
+[31m[1m>[22m[39m[90m 19 |[39m [36mconst[3
+9m fs [33m=[39m require([32m"fs"[39m)[33m;[
+39m
+ [90m    |[39m            [31m[1m^[22m[39m
+[31m[1m^[22m[39m[31m[1m^[22m[39m[31m[1m^
+[22m[39m[31m[1m^[22m[39m[31m[1m^[22m[39
+m[31m[1m^[22m[39m[31m[1m^[22m[39m[31m[1
+m^[22m[39m[31m[1m^[22m[39m[31m[1m^[22m[
+39m[31m[1m^[22m[39m[31m[1m^[22m[39m
+ [90m 20 |[39m [90m// fs.readfile is undefined
+ in browser karma tests causing[39m
+ [90m 21 |[39m [90m// `npm run browser-test` t
+o fail as test.oauth2.ts imports this file via[3
+9m
+ [90m 22 |[39m [90m// src/index.ts.[39m[0m
+
+
+
+Import traces:
+  #1 [Client Component SSR]:
+    ./node_modules/google-auth-library/build/src/
+auth/filesubjecttokensupplier.js
+    ./node_modules/google-auth-library/build/src/
+auth/googleauth.js [Client Component SSR]
+    ./node_modules/google-auth-library/build/src/
+index.js [Client Component SSR]
+    ./node_modules/@google-cloud/vertexai/build/s
+rc/vertex_ai.js [Client Component SSR]
+    ./node_modules/@google-cloud/vertexai/build/s
+rc/index.js [Client Component SSR]
+    ./lib/imageGenerator.ts [Client Component SSR
+]
+    ./app/page.tsx [Client Component SSR]
+    ./app/page.tsx [Server Component]
+
+  #2 [Client Component Browser]:
+    ./node_modules/google-auth-library/build/src/
+auth/filesubjecttokensupplier.js [Client Componen
+t Browser]
+    ./node_modules/google-auth-library/build/src/
+auth/identitypoolclient.js [Client Component Brow
+ser]
+    ./node_modules/google-auth-library/build/src/
+index.js [Client Component Browser]
+    ./node_modules/@google-cloud/vertexai/build/s
+rc/vertex_ai.js [Client Component Browser]
+    ./node_modules/@google-cloud/vertexai/build/s
+rc/index.js [Client Component Browser]
+    ./lib/imageGenerator.ts [Client Component Bro
+wser]
+    ./app/page.tsx [Client Component Browser]
+    ./app/page.tsx [Server Component]
+
+  #3 [Client Component SSR]:
+    ./node_modules/google-auth-library/build/src/
+auth/filesubjecttokensupplier.js [Client Componen
+t SSR]
+    ./node_modules/google-auth-library/build/src/
+auth/identitypoolclient.js [Client Component SSR]
+    ./node_modules/google-auth-library/build/src/
+index.js [Client Component SSR]
+    ./node_modules/@google-cloud/vertexai/build/s
+rc/vertex_ai.js [Client Component SSR]
+    ./node_modules/@google-cloud/vertexai/build/s
+rc/index.js [Client Component SSR]
+    ./lib/imageGenerator.ts [Client Component SSR
+]
+    ./app/page.tsx [Client Component SSR]
+    ./app/page.tsx [Server Component]
+
+https://nextjs.org/docs/messages/module-not-found
+
+
+./node_modules/google-auth-library/build/src/auth
+/googleauth.js:30:12
+Module not found: Can't resolve 'fs'
+[0m [90m 28 |[39m exports[33m.[39m[33mGoogl
+eAuth[39m [33m=[39m exports[33m.[39m[33mGoo
+gleAuthExceptionMessages[39m [33m=[39m exports
+[33m.[39m[33mCLOUD_SDK_CLIENT_ID[39m [33m=[
+39m [36mvoid[39m [35m0[39m[33m;[39m
+ [90m 29 |[39m [36mconst[39m child_process_1 
+[33m=[39m require([32m"child_process"[39m)[3
+3m;[39m
+[31m[1m>[22m[39m[90m 30 |[39m [36mconst[3
+9m fs [33m=[39m require([32m"fs"[39m)[33m;[
+39m
+ [90m    |[39m            [31m[1m^[22m[39m
+[31m[1m^[22m[39m[31m[1m^[22m[39m[31m[1m^
+[22m[39m[31m[1m^[22m[39m[31m[1m^[22m[39
+m[31m[1m^[22m[39m[31m[1m^[22m[39m[31m[1
+m^[22m[39m[31m[1m^[22m[39m[31m[1m^[22m[
+39m[31m[1m^[22m[39m[31m[1m^[22m[39m
+ [90m 31 |[39m [36mconst[39m gcpMetadata [33
+m=[39m require([32m"gcp-metadata"[39m)[33m;[
+39m
+ [90m 32 |[39m [36mconst[39m os [33m=[39m r
+equire([32m"os"[39m)[33m;[39m
+ [90m 33 |[39m [36mconst[39m path [33m=[39m
+ require([32m"path"[39m)[33m;[39m[0m
+
+
+
+Import traces:
+  Client Component Browser:
+    ./node_modules/google-auth-library/build/src/
+auth/googleauth.js [Client Component Browser]
+    ./node_modules/google-auth-library/build/src/
+index.js [Client Component Browser]
+    ./node_modules/@google-cloud/vertexai/build/s
+rc/vertex_ai.js [Client Component Browser]
+    ./node_modules/@google-cloud/vertexai/build/s
+rc/index.js [Client Component Browser]
+    ./lib/imageGenerator.ts [Client Component Bro
+wser]
+    ./app/page.tsx [Client Component Browser]
+    ./app/page.tsx [Server Component]
+
+  Client Component SSR:
+    ./node_modules/google-auth-library/build/src/
+auth/googleauth.js [Client Component SSR]
+    ./node_modules/google-auth-library/build/src/
+index.js [Client Component SSR]
+    ./node_modules/@google-cloud/vertexai/build/s
+rc/vertex_ai.js [Client Component SSR]
+    ./node_modules/@google-cloud/vertexai/build/s
+rc/index.js [Client Component SSR]
+    ./lib/imageGenerator.ts [Client Component SSR
+]
+    ./app/page.tsx [Client Component SSR]
+    ./app/page.tsx [Server Component]
+
+https://nextjs.org/docs/messages/module-not-found
+
+
+./node_modules/google-auth-library/build/src/auth
+/pluggable-auth-handler.js:20:12
+Module not found: Can't resolve 'fs'
+[0m [90m 18 |[39m [36mconst[39m executable_r
+esponse_1 [33m=[39m require([32m"./executable-
+response"[39m)[33m;[39m
+ [90m 19 |[39m [36mconst[39m childProcess [3
+3m=[39m require([32m"child_process"[39m)[33m;
+[39m
+[31m[1m>[22m[39m[90m 20 |[39m [36mconst[3
+9m fs [33m=[39m require([32m"fs"[39m)[33m;[
+39m
+ [90m    |[39m            [31m[1m^[22m[39m
+[31m[1m^[22m[39m[31m[1m^[22m[39m[31m[1m^
+[22m[39m[31m[1m^[22m[39m[31m[1m^[22m[39
+m[31m[1m^[22m[39m[31m[1m^[22m[39m[31m[1
+m^[22m[39m[31m[1m^[22m[39m[31m[1m^[22m[
+39m[31m[1m^[22m[39m[31m[1m^[22m[39m
+ [90m 21 |[39m [90m/**[39m
+ [90m 22 |[39m [90m * A handler used to retrie
+ve 3rd party token responses from user defined[3
+9m
+ [90m 23 |[39m [90m * executables and cached f
+ile output for the PluggableAuthClient class.[39
+m[0m
+
+
+
+Import traces:
+  #1 [Client Component SSR]:
+    ./node_modules/google-auth-library/build/src/
+auth/pluggable-auth-handler.js
+    ./node_modules/google-auth-library/build/src/
+auth/googleauth.js [Client Component SSR]
+    ./node_modules/google-auth-library/build/src/
+index.js [Client Component SSR]
+    ./node_modules/@google-cloud/vertexai/build/s
+rc/vertex_ai.js [Client Component SSR]
+    ./node_modules/@google-cloud/vertexai/build/s
+rc/index.js [Client Component SSR]
+    ./lib/imageGenerator.ts [Client Component SSR
+]
+    ./app/page.tsx [Client Component SSR]
+    ./app/page.tsx [Server Component]
+
+  #2 [Client Component Browser]:
+    ./node_modules/google-auth-library/build/src/
+auth/pluggable-auth-handler.js [Client Component 
+Browser]
+    ./node_modules/google-auth-library/build/src/
+auth/pluggable-auth-client.js [Client Component B
+rowser]
+    ./node_modules/google-auth-library/build/src/
+index.js [Client Component Browser]
+    ./node_modules/@google-cloud/vertexai/build/s
+rc/vertex_ai.js [Client Component Browser]
+    ./node_modules/@google-cloud/vertexai/build/s
+rc/index.js [Client Component Browser]
+    ./lib/imageGenerator.ts [Client Component Bro
+wser]
+    ./app/page.tsx [Client Component Browser]
+    ./app/page.tsx [Server Component]
+
+  #3 [Client Component SSR]:
+    ./node_modules/google-auth-library/build/src/
+auth/pluggable-auth-handler.js [Client Component 
+SSR]
+    ./node_modules/google-auth-library/build/src/
+auth/pluggable-auth-client.js [Client Component S
+SR]
+    ./node_modules/google-auth-library/build/src/
+index.js [Client Component SSR]
+    ./node_modules/@google-cloud/vertexai/build/s
+rc/vertex_ai.js [Client Component SSR]
+    ./node_modules/@google-cloud/vertexai/build/s
+rc/index.js [Client Component SSR]
+    ./lib/imageGenerator.ts [Client Component SSR
+]
+    ./app/page.tsx [Client Component SSR]
+    ./app/page.tsx [Server Component]
+
+https://nextjs.org/docs/messages/module-not-found
+
+
+./node_modules/gtoken/build/src/index.js:22:12
+Module not found: Can't resolve 'fs'
+[0m [90m 20 |[39m [33mObject[39m[33m.[39md
+efineProperty(exports[33m,[39m [32m"__esModule
+"[39m[33m,[39m { value[33m:[39m [36mtrue[3
+9m })[33m;[39m
+ [90m 21 |[39m exports[33m.[39m[33mGoogleTok
+en[39m [33m=[39m [36mvoid[39m [35m0[39m[3
+3m;[39m
+[31m[1m>[22m[39m[90m 22 |[39m [36mconst[3
+9m fs [33m=[39m require([32m"fs"[39m)[33m;[
+39m
+ [90m    |[39m            [31m[1m^[22m[39m
+[31m[1m^[22m[39m[31m[1m^[22m[39m[31m[1m^
+[22m[39m[31m[1m^[22m[39m[31m[1m^[22m[39
+m[31m[1m^[22m[39m[31m[1m^[22m[39m[31m[1
+m^[22m[39m[31m[1m^[22m[39m[31m[1m^[22m[
+39m[31m[1m^[22m[39m[31m[1m^[22m[39m
+ [90m 23 |[39m [36mconst[39m gaxios_1 [33m=
+[39m require([32m"gaxios"[39m)[33m;[39m
+ [90m 24 |[39m [36mconst[39m jws [33m=[39m 
+require([32m"jws"[39m)[33m;[39m
+ [90m 25 |[39m [36mconst[39m path [33m=[39m
+ require([32m"path"[39m)[33m;[39m[0m
+
+
+
+Import traces:
+  Client Component Browser:
+    ./node_modules/gtoken/build/src/index.js [Cli
+ent Component Browser]
+    ./node_modules/google-auth-library/build/src/
+auth/jwtclient.js [Client Component Browser]
+    ./node_modules/google-auth-library/build/src/
+index.js [Client Component Browser]
+    ./node_modules/@google-cloud/vertexai/build/s
+rc/vertex_ai.js [Client Component Browser]
+    ./node_modules/@google-cloud/vertexai/build/s
+rc/index.js [Client Component Browser]
+    ./lib/imageGenerator.ts [Client Component Bro
+wser]
+    ./app/page.tsx [Client Component Browser]
+    ./app/page.tsx [Server Component]
+
+  Client Component SSR:
+    ./node_modules/gtoken/build/src/index.js [Cli
+ent Component SSR]
+    ./node_modules/google-auth-library/build/src/
+auth/jwtclient.js [Client Component SSR]
+    ./node_modules/google-auth-library/build/src/
+index.js [Client Component SSR]
+    ./node_modules/@google-cloud/vertexai/build/s
+rc/vertex_ai.js [Client Component SSR]
+    ./node_modules/@google-cloud/vertexai/build/s
+rc/index.js [Client Component SSR]
+    ./lib/imageGenerator.ts [Client Component SSR
+]
+    ./app/page.tsx [Client Component SSR]
+    ./app/page.tsx [Server Component]
+
+https://nextjs.org/docs/messages/module-not-found
+
+
+./node_modules/agent-base/dist/index.js:30:26
+Module not found: Can't resolve 'net'
+[0m [90m 28 |[39m [33mObject[39m[33m.[39md
+efineProperty(exports[33m,[39m [32m"__esModule
+"[39m[33m,[39m { value[33m:[39m [36mtrue[3
+9m })[33m;[39m
+ [90m 29 |[39m exports[33m.[39m[33mAgent[39
+m [33m=[39m [36mvoid[39m [35m0[39m[33m;[3
+9m
+[31m[1m>[22m[39m[90m 30 |[39m [36mconst[3
+9m net [33m=[39m __importStar(require([32m"net
+"[39m))[33m;[39m
+ [90m    |[39m                          [31m[
+1m^[22m[39m[31m[1m^[22m[39m[31m[1m^[22m
+[39m[31m[1m^[22m[39m[31m[1m^[22m[39m[31m
+[1m^[22m[39m[31m[1m^[22m[39m[31m[1m^[22
+m[39m[31m[1m^[22m[39m[31m[1m^[22m[39m[3
+1m[1m^[22m[39m[31m[1m^[22m[39m[31m[1m^[
+22m[39m[31m[1m^[22m[39m
+ [90m 31 |[39m [36mconst[39m http [33m=[39m
+ __importStar(require([32m"http"[39m))[33m;[3
+9m
+ [90m 32 |[39m [36mconst[39m https_1 [33m=[
+39m require([32m"https"[39m)[33m;[39m
+ [90m 33 |[39m __exportStar(require([32m"./hel
+pers"[39m)[33m,[39m exports)[33m;[39m[0m
+
+
+
+Import traces:
+  Client Component Browser:
+    ./node_modules/agent-base/dist/index.js [Clie
+nt Component Browser]
+    ./node_modules/https-proxy-agent/dist/index.j
+s [Client Component Browser]
+    ./node_modules/gaxios/build/src/gaxios.js [Cl
+ient Component Browser]
+    ./node_modules/gaxios/build/src/index.js [Cli
+ent Component Browser]
+    ./node_modules/google-auth-library/build/src/
+index.js [Client Component Browser]
+    ./node_modules/@google-cloud/vertexai/build/s
+rc/vertex_ai.js [Client Component Browser]
+    ./node_modules/@google-cloud/vertexai/build/s
+rc/index.js [Client Component Browser]
+    ./lib/imageGenerator.ts [Client Component Bro
+wser]
+    ./app/page.tsx [Client Component Browser]
+    ./app/page.tsx [Server Component]
+
+  Client Component SSR:
+    ./node_modules/agent-base/dist/index.js [Clie
+nt Component SSR]
+    ./node_modules/https-proxy-agent/dist/index.j
+s [Client Component SSR]
+    ./node_modules/gaxios/build/src/gaxios.js [Cl
+ient Component SSR]
+    ./node_modules/gaxios/build/src/index.js [Cli
+ent Component SSR]
+    ./node_modules/google-auth-library/build/src/
+index.js [Client Component SSR]
+    ./node_modules/@google-cloud/vertexai/build/s
+rc/vertex_ai.js [Client Component SSR]
+    ./node_modules/@google-cloud/vertexai/build/s
+rc/index.js [Client Component SSR]
+    ./lib/imageGenerator.ts [Client Component SSR
+]
+    ./app/page.tsx [Client Component SSR]
+    ./app/page.tsx [Server Component]
+
+https://nextjs.org/docs/messages/module-not-found
+
+
+./node_modules/https-proxy-agent/dist/index.js:30
+:26
+Module not found: Can't resolve 'net'
+[0m [90m 28 |[39m [33mObject[39m[33m.[39md
+efineProperty(exports[33m,[39m [32m"__esModule
+"[39m[33m,[39m { value[33m:[39m [36mtrue[3
+9m })[33m;[39m
+ [90m 29 |[39m exports[33m.[39m[33mHttpsProx
+yAgent[39m [33m=[39m [36mvoid[39m [35m0[39
+m[33m;[39m
+[31m[1m>[22m[39m[90m 30 |[39m [36mconst[3
+9m net [33m=[39m __importStar(require([32m"net
+"[39m))[33m;[39m
+ [90m    |[39m                          [31m[
+1m^[22m[39m[31m[1m^[22m[39m[31m[1m^[22m
+[39m[31m[1m^[22m[39m[31m[1m^[22m[39m[31m
+[1m^[22m[39m[31m[1m^[22m[39m[31m[1m^[22
+m[39m[31m[1m^[22m[39m[31m[1m^[22m[39m[3
+1m[1m^[22m[39m[31m[1m^[22m[39m[31m[1m^[
+22m[39m[31m[1m^[22m[39m
+ [90m 31 |[39m [36mconst[39m tls [33m=[39m 
+__importStar(require([32m"tls"[39m))[33m;[39m
+ [90m 32 |[39m [36mconst[39m assert_1 [33m=
+[39m __importDefault(require([32m"assert"[39m))
+[33m;[39m
+ [90m 33 |[39m [36mconst[39m debug_1 [33m=[
+39m __importDefault(require([32m"debug"[39m))[
+33m;[39m[0m
+
+
+
+Import traces:
+  Client Component Browser:
+    ./node_modules/https-proxy-agent/dist/index.j
+s [Client Component Browser]
+    ./node_modules/gaxios/build/src/gaxios.js [Cl
+ient Component Browser]
+    ./node_modules/gaxios/build/src/index.js [Cli
+ent Component Browser]
+    ./node_modules/google-auth-library/build/src/
+index.js [Client Component Browser]
+    ./node_modules/@google-cloud/vertexai/build/s
+rc/vertex_ai.js [Client Component Browser]
+    ./node_modules/@google-cloud/vertexai/build/s
+rc/index.js [Client Component Browser]
+    ./lib/imageGenerator.ts [Client Component Bro
+wser]
+    ./app/page.tsx [Client Component Browser]
+    ./app/page.tsx [Server Component]
+
+  Client Component SSR:
+    ./node_modules/https-proxy-agent/dist/index.j
+s [Client Component SSR]
+    ./node_modules/gaxios/build/src/gaxios.js [Cl
+ient Component SSR]
+    ./node_modules/gaxios/build/src/index.js [Cli
+ent Component SSR]
+    ./node_modules/google-auth-library/build/src/
+index.js [Client Component SSR]
+    ./node_modules/@google-cloud/vertexai/build/s
+rc/vertex_ai.js [Client Component SSR]
+    ./node_modules/@google-cloud/vertexai/build/s
+rc/index.js [Client Component SSR]
+    ./lib/imageGenerator.ts [Client Component SSR
+]
+    ./app/page.tsx [Client Component SSR]
+    ./app/page.tsx [Server Component]
+
+https://nextjs.org/docs/messages/module-not-found
+
+
+./node_modules/https-proxy-agent/dist/index.js:31
+:26
+Module not found: Can't resolve 'tls'
+[0m [90m 29 |[39m exports[33m.[39m[33mHttps
+ProxyAgent[39m [33m=[39m [36mvoid[39m [35m0
+[39m[33m;[39m
+ [90m 30 |[39m [36mconst[39m net [33m=[39m 
+__importStar(require([32m"net"[39m))[33m;[39m
+[31m[1m>[22m[39m[90m 31 |[39m [36mconst[3
+9m tls [33m=[39m __importStar(require([32m"tls
+"[39m))[33m;[39m
+ [90m    |[39m                          [31m[
+1m^[22m[39m[31m[1m^[22m[39m[31m[1m^[22m
+[39m[31m[1m^[22m[39m[31m[1m^[22m[39m[31m
+[1m^[22m[39m[31m[1m^[22m[39m[31m[1m^[22
+m[39m[31m[1m^[22m[39m[31m[1m^[22m[39m[3
+1m[1m^[22m[39m[31m[1m^[22m[39m[31m[1m^[
+22m[39m[31m[1m^[22m[39m
+ [90m 32 |[39m [36mconst[39m assert_1 [33m=
+[39m __importDefault(require([32m"assert"[39m))
+[33m;[39m
+ [90m 33 |[39m [36mconst[39m debug_1 [33m=[
+39m __importDefault(require([32m"debug"[39m))[
+33m;[39m
+ [90m 34 |[39m [36mconst[39m agent_base_1 [3
+3m=[39m require([32m"agent-base"[39m)[33m;[3
+9m[0m
+
+
+
+Import traces:
+  Client Component Browser:
+    ./node_modules/https-proxy-agent/dist/index.j
+s [Client Component Browser]
+    ./node_modules/gaxios/build/src/gaxios.js [Cl
+ient Component Browser]
+    ./node_modules/gaxios/build/src/index.js [Cli
+ent Component Browser]
+    ./node_modules/google-auth-library/build/src/
+index.js [Client Component Browser]
+    ./node_modules/@google-cloud/vertexai/build/s
+rc/vertex_ai.js [Client Component Browser]
+    ./node_modules/@google-cloud/vertexai/build/s
+rc/index.js [Client Component Browser]
+    ./lib/imageGenerator.ts [Client Component Bro
+wser]
+    ./app/page.tsx [Client Component Browser]
+    ./app/page.tsx [Server Component]
+
+  Client Component SSR:
+    ./node_modules/https-proxy-agent/dist/index.j
+s [Client Component SSR]
+    ./node_modules/gaxios/build/src/gaxios.js [Cl
+ient Component SSR]
+    ./node_modules/gaxios/build/src/index.js [Cli
+ent Component SSR]
+    ./node_modules/google-auth-library/build/src/
+index.js [Client Component SSR]
+    ./node_modules/@google-cloud/vertexai/build/s
+rc/vertex_ai.js [Client Component SSR]
+    ./node_modules/@google-cloud/vertexai/build/s
+rc/index.js [Client Component SSR]
+    ./lib/imageGenerator.ts [Client Component SSR
+]
+    ./app/page.tsx [Client Component SSR]
+    ./app/page.tsx [Server Component]
+
+https://nextjs.org/docs/messages/module-not-found
+
+
+    at <unknown> (./app/components/ApiSettings.ts
+x:36:23)
+    at <unknown> (https://nextjs.org/docs/message
+s/module-not-found)
+    ... collapsed 9 duplicate lines matching abov
+e 1 lines 9 times...
