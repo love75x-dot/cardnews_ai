@@ -83,39 +83,101 @@ export function Canvas({
     return (
         <main className="flex-1 flex flex-col overflow-hidden bg-[#050505]">
             {/* Hidden container for rendering all cards for download */}
-            <div className="absolute -left-[9999px] -top-[9999px]">
+            <div 
+                style={{ 
+                    position: 'fixed',
+                    left: '-9999px',
+                    top: '-9999px',
+                    width: '1024px',
+                    visibility: 'hidden',
+                    pointerEvents: 'none'
+                }}
+            >
                 {cards.map((card, index) => (
                     <div
-                        key={card.id}
+                        key={`download-${card.id}`}
                         ref={(el) => { cardRefs.current[index] = el; }}
-                        className="relative"
-                        style={{ width: '1024px', height: '1024px' }} // Use a fixed high-res size for download
+                        style={{ 
+                            width: '1024px', 
+                            height: '1024px',
+                            position: 'relative',
+                            display: 'block',
+                            margin: '0',
+                            padding: '0'
+                        }}
                     >
                         {/* Main Image */}
                         {card.imageUrl ? (
                             <img
                                 src={card.imageUrl}
                                 alt={card.headline}
-                                crossOrigin="anonymous" // Important for html2canvas
-                                className="absolute inset-0 w-full h-full object-cover"
+                                crossOrigin="anonymous"
+                                style={{
+                                    position: 'absolute',
+                                    inset: '0',
+                                    width: '100%',
+                                    height: '100%',
+                                    objectFit: 'cover',
+                                    display: 'block'
+                                }}
                             />
                         ) : (
-                            <div className="absolute inset-0 bg-gradient-to-br from-purple-900/30 to-blue-900/30" />
+                            <div style={{
+                                position: 'absolute',
+                                inset: '0',
+                                background: 'linear-gradient(to bottom right, rgba(88, 28, 135, 0.3), rgba(30, 27, 102, 0.3))'
+                            }} />
                         )}
 
                         {/* Text Overlay with Gradient */}
-                        <div className="absolute inset-0 bg-gradient-to-t from-black via-black/60 to-transparent" />
+                        <div style={{
+                            position: 'absolute',
+                            inset: '0',
+                            background: 'linear-gradient(to top, black, rgba(0, 0, 0, 0.6), transparent)'
+                        }} />
 
                         {/* Text Content */}
-                        <div className="absolute bottom-0 left-0 right-0 p-16">
-                            <h2 className="text-white text-6xl font-bold leading-tight drop-shadow-lg">
+                        <div style={{
+                            position: 'absolute',
+                            bottom: '0',
+                            left: '0',
+                            right: '0',
+                            padding: '64px'
+                        }}>
+                            <h2 style={{
+                                color: 'white',
+                                fontSize: '48px',
+                                fontWeight: 'bold',
+                                lineHeight: '1.2',
+                                textShadow: '0 2px 4px rgba(0, 0, 0, 0.5)',
+                                margin: '0'
+                            }}>
                                 {card.headline}
                             </h2>
                         </div>
 
                         {/* Page Number Badge */}
-                        <div className="absolute top-8 right-8 bg-white/20 backdrop-blur-sm rounded-full w-20 h-20 flex items-center justify-center border-2 border-white/30">
-                            <span className="text-white font-bold text-3xl">{card.id}</span>
+                        <div style={{
+                            position: 'absolute',
+                            top: '32px',
+                            right: '32px',
+                            background: 'rgba(255, 255, 255, 0.2)',
+                            backdropFilter: 'blur(4px)',
+                            borderRadius: '50%',
+                            width: '80px',
+                            height: '80px',
+                            display: 'flex',
+                            alignItems: 'center',
+                            justifyContent: 'center',
+                            border: '2px solid rgba(255, 255, 255, 0.3)'
+                        }}>
+                            <span style={{
+                                color: 'white',
+                                fontWeight: 'bold',
+                                fontSize: '32px'
+                            }}>
+                                {card.id}
+                            </span>
                         </div>
                     </div>
                 ))}
