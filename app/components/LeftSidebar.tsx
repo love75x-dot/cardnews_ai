@@ -273,6 +273,7 @@ export function LeftSidebar({
                                     <SelectItem value="minimal">미니멀</SelectItem>
                                     <SelectItem value="luxury">럭셔리</SelectItem>
                                     <SelectItem value="vintage">빈티지</SelectItem>
+                                    <SelectItem value="realistic">실사 배경</SelectItem>
                                 </SelectContent>
                             </Select>
                         </div>

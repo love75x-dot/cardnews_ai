@@ -75,7 +75,8 @@ export function getBackgroundStylePrompt(backgroundStyle: string): string {
         modern: "Modern minimalist setting, sleek surfaces, contemporary interior design, clean lines, modern decor",
         minimal: "Extremely minimal background, single solid color or very subtle texture, focus entirely on product",
         luxury: "Luxurious upscale setting, elegant background, premium materials visible, sophisticated atmosphere, gold accents",
-        vintage: "Vintage or retro setting, antique furniture, warm nostalgic colors, vintage decor, rustic aesthetic"
+        vintage: "Vintage or retro setting, antique furniture, warm nostalgic colors, vintage decor, rustic aesthetic",
+        realistic: "Photorealistic background, realistic lighting and shadows, professional product photography style, detailed textures, natural colors"
     };
 
     return backgroundPrompts[backgroundStyle] || backgroundPrompts['studio'];
