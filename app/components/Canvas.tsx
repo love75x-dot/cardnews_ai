@@ -108,21 +108,24 @@ export function Canvas({
                     left: '-9999px',
                     top: '-9999px',
                     width: `${imageDimensions.width}px`,
-                    visibility: 'hidden',
-                    pointerEvents: 'none'
+                    opacity: 0,
+                    pointerEvents: 'none',
+                    zIndex: -9999
                 }}
             >
                 {cards.map((card, index) => (
                     <div
                         key={`download-${card.id}`}
                         ref={(el) => { cardRefs.current[index] = el; }}
+                        data-card-download
                         style={{ 
                             width: `${imageDimensions.width}px`, 
                             height: `${imageDimensions.height}px`,
                             position: 'relative',
                             display: 'block',
                             margin: '0',
-                            padding: '0'
+                            padding: '0',
+                            backgroundColor: '#ffffff'
                         }}
                     >
                         {/* Main Image */}
