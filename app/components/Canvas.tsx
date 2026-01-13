@@ -84,12 +84,15 @@ export function Canvas({
         try {
             setIsDownloading(true);
             const canvas = await html2canvas(previewRef.current, {
-                backgroundColor: null,
+                backgroundColor: '#ffffff',
                 scale: 2,
                 logging: false,
                 useCORS: true,
+                allowTaint: true,
+                imageTimeout: 10000,
             });
 
+            // Promise 기반으로 변경하여 blob 생성 완료 후 처리
             canvas.toBlob((blob) => {
                 if (blob) {
                     const link = document.createElement('a');
@@ -100,13 +103,17 @@ export function Canvas({
                     link.click();
                     document.body.removeChild(link);
                     URL.revokeObjectURL(url);
+                    setIsDownloading(false);
+                    console.log('카드뉴스 이미지 저장 완료');
+                } else {
+                    setIsDownloading(false);
+                    alert('이미지 생성에 실패했습니다.');
                 }
-            });
+            }, 'image/png');
         } catch (error) {
             console.error('카드 이미지 저장 실패:', error);
-            alert('카드 이미지 저장에 실패했습니다.');
-        } finally {
             setIsDownloading(false);
+            alert('카드 이미지 저장에 실패했습니다.\n브라우저 콘솔(F12)에서 자세한 오류를 확인하세요.');
         }
     };
 
