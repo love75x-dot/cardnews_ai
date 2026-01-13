@@ -21,6 +21,7 @@ interface CanvasProps {
     onSettingsClick: () => void;
     onManualClick: () => void;
     topic?: string;
+    aspectRatio?: string;
 }
 
 export function Canvas({
@@ -29,12 +30,30 @@ export function Canvas({
     onSceneSelect,
     onSettingsClick,
     onManualClick,
-    topic = '카드뉴스'
+    topic = '카드뉴스',
+    aspectRatio = '1:1'
 }: CanvasProps) {
     const hasCards = cards.length > 0;
     const selectedScene = hasCards ? cards[selectedIndex] : null;
     const cardRefs = useRef<(HTMLElement | null)[]>([]);
     const [isDownloading, setIsDownloading] = useState(false);
+
+    // 비율에 따른 이미지 크기 계산
+    const getImageDimensions = (ratio: string): { width: number; height: number } => {
+        const baseSize = 1024;
+        switch (ratio) {
+            case '1:1':
+                return { width: baseSize, height: baseSize };
+            case '9:16':
+                return { width: Math.round(baseSize * 9 / 16), height: baseSize }; // 576x1024
+            case '16:9':
+                return { width: baseSize, height: Math.round(baseSize * 9 / 16) }; // 1024x576
+            default:
+                return { width: baseSize, height: baseSize };
+        }
+    };
+
+    const imageDimensions = getImageDimensions(aspectRatio);
 
     const handleDownloadScene = async () => {
         if (!selectedScene) return;
@@ -88,7 +107,7 @@ export function Canvas({
                     position: 'fixed',
                     left: '-9999px',
                     top: '-9999px',
-                    width: '1024px',
+                    width: `${imageDimensions.width}px`,
                     visibility: 'hidden',
                     pointerEvents: 'none'
                 }}
@@ -98,8 +117,8 @@ export function Canvas({
                         key={`download-${card.id}`}
                         ref={(el) => { cardRefs.current[index] = el; }}
                         style={{ 
-                            width: '1024px', 
-                            height: '1024px',
+                            width: `${imageDimensions.width}px`, 
+                            height: `${imageDimensions.height}px`,
                             position: 'relative',
                             display: 'block',
                             margin: '0',
@@ -258,7 +277,12 @@ export function Canvas({
                                     )}
                                 >
                                     {/* Thumbnail */}
-                                    <div className="aspect-square rounded-lg overflow-hidden mb-2 bg-slate-950">
+                                    <div 
+                                        className="rounded-lg overflow-hidden mb-2 bg-slate-950"
+                                        style={{
+                                            aspectRatio: `${imageDimensions.width} / ${imageDimensions.height}`
+                                        }}
+                                    >
                                         {card.imageUrl && (
                                             <img
                                                 src={card.imageUrl} // Using imageUrl for thumbnail
@@ -279,7 +303,12 @@ export function Canvas({
                         <div className="flex-1 bg-slate-950 flex items-center justify-center p-8 overflow-auto">
                             {selectedScene && (
                                 <div
-                                    className="relative max-w-4xl w-full aspect-square"
+                                    style={{
+                                        position: 'relative',
+                                        maxWidth: '100%',
+                                        width: `${Math.min(imageDimensions.width, 400)}px`,
+                                        aspectRatio: imageDimensions.width / imageDimensions.height
+                                    }}
                                 >
                                     {/* Main Image */}
                                     {selectedScene.imageUrl ? (

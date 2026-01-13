@@ -245,6 +245,7 @@ export default function Home() {
         onSettingsClick={() => setIsSettingsOpen(true)}
         onManualClick={() => setIsManualOpen(true)}
         topic={topic}
+        aspectRatio={aspectRatio}
       />
 
       {/* API Settings Modal */}
