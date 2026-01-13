@@ -24,7 +24,7 @@ async function elementToCanvas(element: HTMLElement): Promise<HTMLCanvasElement>
             backgroundColor: null,
             logging: false,
             // Wait for images to load
-            imageTimeout: 15000,
+            imageTimeout: 20000,
             onclone: (clonedDoc) => {
                 // Ensure images are loaded in cloned document
                 const images = clonedDoc.querySelectorAll('img');
@@ -32,6 +32,8 @@ async function elementToCanvas(element: HTMLElement): Promise<HTMLCanvasElement>
                     if (img instanceof HTMLImageElement) {
                         // Force crossOrigin attribute
                         img.crossOrigin = 'anonymous';
+                        // Remove any transform styles that might cause issues
+                        img.style.transform = 'none';
                     }
                 });
             }
@@ -52,16 +54,38 @@ export async function downloadCard(
     topic: string
 ): Promise<void> {
     try {
+        console.log(`Downloading card ${cardId}...`);
+        
         const canvas = await elementToCanvas(cardElement);
+        console.log('Canvas created, converting to blob...');
 
-        canvas.toBlob((blob) => {
-            if (!blob) {
-                throw new Error('이미지 생성 실패');
-            }
+        // Promise로 toBlob을 래핑
+        const blob = await new Promise<Blob | null>((resolve, reject) => {
+            const timeout = setTimeout(() => {
+                reject(new Error('Blob 변환 시간 초과'));
+            }, 10000);
 
-            const filename = `${sanitizeFilename(topic)}_카드${cardId}.png`;
-            saveAs(blob, filename);
-        }, 'image/png');
+            canvas.toBlob(
+                (blob) => {
+                    clearTimeout(timeout);
+                    resolve(blob);
+                },
+                'image/png',
+                0.95
+            );
+        });
+
+        if (!blob) {
+            throw new Error('이미지 생성 실패 - Blob이 null입니다');
+        }
+
+        console.log(`Blob created: ${blob.size} bytes`);
+        
+        const filename = `${sanitizeFilename(topic)}_카드_${String(cardId).padStart(2, '0')}.png`;
+        console.log(`Saving as: ${filename}`);
+        
+        saveAs(blob, filename);
+        console.log('Download initiated');
     } catch (error) {
         console.error('Download error:', error);
         if (error instanceof Error) {
@@ -80,43 +104,49 @@ export async function downloadAllCards(
 ): Promise<void> {
     try {
         const zip = new JSZip();
-
-        // Convert all cards to canvases first
         console.log(`Converting ${cardElements.length} cards to images...`);
 
-        for (let i = 0; i < cardElements.length; i++) {
-            const element = cardElements[i];
+        let i = 0;
+        for (const element of cardElements) {
             const cardNumber = i + 1;
-
             console.log(`Processing card ${cardNumber}/${cardElements.length}...`);
-
             try {
                 const canvas = await elementToCanvas(element);
+                
+                const blob = await new Promise<Blob | null>((resolve, reject) => {
+                    const timeout = setTimeout(() => {
+                        reject(new Error(`Card ${cardNumber} Blob 변환 시간 초과`));
+                    }, 10000);
 
-                // Convert canvas to blob
-                const blob = await new Promise<Blob>((resolve, reject) => {
-                    canvas.toBlob((blob) => {
-                        if (blob) {
+                    canvas.toBlob(
+                        (blob) => {
+                            clearTimeout(timeout);
                             resolve(blob);
-                        } else {
-                            reject(new Error(`카드 ${cardNumber} 변환 실패`));
-                        }
-                    }, 'image/png');
+                        },
+                        'image/png',
+                        0.95
+                    );
                 });
 
-                // Add to zip
-                const filename = `카드${cardNumber}.png`;
-                zip.file(filename, blob);
-
+                if (blob) {
+                    const filename = `카드_${String(cardNumber).padStart(2, '0')}.png`;
+                    zip.file(filename, blob);
+                    console.log(`Card ${cardNumber} added to ZIP`);
+                } else {
+                    console.warn(`Skipping card ${cardNumber} due to blob creation failure.`);
+                }
             } catch (error) {
                 console.error(`Error processing card ${cardNumber}:`, error);
-                throw new Error(`카드 ${cardNumber} 처리 중 오류 발생`);
+                // Continue to next card
             }
+            i++;
         }
 
-        console.log('Creating ZIP file...');
+        if (Object.keys(zip.files).length === 0) {
+            throw new Error("모든 카드 이미지 변환에 실패했습니다.");
+        }
 
-        // Generate ZIP
+        console.log(`ZIP 파일 생성 중... (${Object.keys(zip.files).length} 파일)`);
         const zipBlob = await zip.generateAsync({
             type: 'blob',
             compression: 'DEFLATE',
@@ -125,7 +155,8 @@ export async function downloadAllCards(
             }
         });
 
-        // Download ZIP
+        console.log(`ZIP created: ${zipBlob.size} bytes`);
+
         const zipFilename = `${sanitizeFilename(topic)}_카드뉴스.zip`;
         saveAs(zipBlob, zipFilename);
 

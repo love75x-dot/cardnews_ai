@@ -5,15 +5,10 @@ import { Settings, Download, Loader2, BookOpen } from 'lucide-react';
 import { Button } from '@/components/ui/button';
 import { downloadCard, downloadAllCards } from '@/lib/downloadUtils';
 import { cn } from '@/lib/utils';
+import type { CardData } from '../page';
 
 interface CanvasProps {
-    cards: Array<{
-        id: number;
-        headline: string;  // Short text for image overlay
-        text: string;       // Script for property panel
-        imagePrompt?: string;
-        imageUrl?: string;
-    }>;
+    cards: CardData[];
     selectedIndex: number;
     onSceneSelect: (index: number) => void;
     onSettingsClick: () => void;
@@ -40,15 +35,29 @@ export function Canvas({
         if (!cardElement) return;
 
         try {
-            await downloadCard(cardElement, selectedScene.id, topic);
+            const downloadButton = document.querySelector('[data-download-single]') as HTMLButtonElement;
+            if (downloadButton) {
+                downloadButton.disabled = true;
+            }
+            await downloadCard(cardElement, selectedScene.page, topic);
         } catch (error) {
+            console.error('Download error:', error);
             if (error instanceof Error) {
                 alert(error.message);
+            } else {
+                alert('다운로드 중 오류가 발생했습니다.');
+            }
+        } finally {
+            const downloadButton = document.querySelector('[data-download-single]') as HTMLButtonElement;
+            if (downloadButton) {
+                downloadButton.disabled = false;
             }
         }
     };
 
     const handleDownloadAll = async () => {
+        // The refs are populated by the hidden off-screen renderer
+        // so we should have all card elements here.
         const validCards = cardRefs.current.filter((el): el is HTMLElement => el !== null);
         if (validCards.length === 0) return;
 
@@ -66,6 +75,44 @@ export function Canvas({
 
     return (
         <main className="flex-1 flex flex-col overflow-hidden bg-[#050505]">
+            {/* Hidden container for rendering all cards for download */}
+            <div className="absolute -left-[9999px] -top-[9999px]">
+                {cards.map((card, index) => (
+                    <div
+                        key={card.page}
+                        ref={(el) => { cardRefs.current[index] = el; }}
+                        className="relative"
+                        style={{ width: '1024px', height: '1024px' }} // Use a fixed high-res size for download
+                    >
+                        {/* Main Image */}
+                        {card.imageUrl ? (
+                            <img
+                                src={card.imageUrl}
+                                alt={card.headline}
+                                crossOrigin="anonymous" // Important for html2canvas
+                                className="absolute inset-0 w-full h-full object-cover"
+                            />
+                        ) : (
+                            <div className="absolute inset-0 bg-gradient-to-br from-purple-900/30 to-blue-900/30" />
+                        )}
+
+                        {/* Text Overlay with Gradient */}
+                        <div className="absolute inset-0 bg-gradient-to-t from-black via-black/60 to-transparent" />
+
+                        {/* Text Content */}
+                        <div className="absolute bottom-0 left-0 right-0 p-16">
+                            <h2 className="text-white text-6xl font-bold leading-tight drop-shadow-lg">
+                                {card.headline}
+                            </h2>
+                        </div>
+
+                        {/* Page Number Badge */}
+                        <div className="absolute top-8 right-8 bg-white/20 backdrop-blur-sm rounded-full w-20 h-20 flex items-center justify-center border-2 border-white/30">
+                            <span className="text-white font-bold text-3xl">{card.page}</span>
+                        </div>
+                    </div>
+                ))}
+            </div>
             {/* Header with Download and Settings Buttons */}
             <div className="h-16 border-b border-slate-800 flex items-center justify-between px-6">
                 {/* Left: Download All Button (visible when cards exist) */}
@@ -134,7 +181,7 @@ export function Canvas({
                         <div className="w-60 border-r border-slate-800 overflow-y-auto bg-slate-900">
                             {cards.map((card, index) => (
                                 <div
-                                    key={card.id}
+                                    key={card.page}
                                     onClick={() => onSceneSelect(index)}
                                     className={cn(
                                         "p-4 cursor-pointer hover:bg-slate-800/50 transition-colors border-b border-slate-800",
@@ -145,16 +192,16 @@ export function Canvas({
                                     <div className="aspect-square rounded-lg overflow-hidden mb-2 bg-slate-950">
                                         {card.imageUrl && (
                                             <img
-                                                src={card.imageUrl}
-                                                alt={`Scene ${card.id}`}
+                                                src={card.imageUrl} // Using imageUrl for thumbnail
+                                                alt={`Scene ${card.page}`}
                                                 className="w-full h-full object-cover"
                                             />
                                         )}
                                     </div>
 
                                     {/* Scene Info */}
-                                    <div className="text-xs text-gray-400">Scene {card.id}</div>
-                                    <div className="text-sm text-white line-clamp-2 mt-1">{card.text}</div>
+                                    <div className="text-xs text-gray-400">Scene {card.page}</div>
+                                    <div className="text-sm text-white line-clamp-2 mt-1">{card.headline}</div>
                                 </div>
                             ))}
                         </div>
@@ -163,14 +210,13 @@ export function Canvas({
                         <div className="flex-1 bg-slate-950 flex items-center justify-center p-8 overflow-auto">
                             {selectedScene && (
                                 <div
-                                    ref={(el) => { cardRefs.current[selectedIndex] = el; }}
                                     className="relative max-w-4xl w-full aspect-square"
                                 >
                                     {/* Main Image */}
                                     {selectedScene.imageUrl ? (
                                         <img
                                             src={selectedScene.imageUrl}
-                                            alt={selectedScene.text}
+                                            alt={selectedScene.headline}
                                             className="absolute inset-0 w-full h-full object-cover rounded-xl shadow-2xl"
                                         />
                                     ) : (
@@ -183,13 +229,13 @@ export function Canvas({
                                     {/* Text Content */}
                                     <div className="absolute bottom-0 left-0 right-0 p-8">
                                         <h2 className="text-white text-4xl font-bold leading-tight drop-shadow-lg">
-                                            {selectedScene.text}
+                                            {selectedScene.headline}
                                         </h2>
                                     </div>
 
                                     {/* Page Number Badge */}
                                     <div className="absolute top-4 right-4 bg-white/20 backdrop-blur-sm rounded-full w-12 h-12 flex items-center justify-center border border-white/30">
-                                        <span className="text-white font-bold text-lg">{selectedScene.id}</span>
+                                        <span className="text-white font-bold text-lg">{selectedScene.page}</span>
                                     </div>
                                 </div>
                             )}
@@ -205,7 +251,7 @@ export function Canvas({
                                             📄 스크립트
                                         </h3>
                                         <div className="bg-slate-800 rounded-lg p-3 text-sm text-gray-300 leading-relaxed">
-                                            {selectedScene.text}
+                                            {selectedScene.script}
                                         </div>
                                     </div>
 
@@ -224,6 +270,7 @@ export function Canvas({
                                     {/* Download Button */}
                                     <Button
                                         onClick={handleDownloadScene}
+                                        data-download-single
                                         className="w-full bg-gradient-to-r from-purple-600 to-blue-600 hover:from-purple-700 hover:to-blue-700 text-white"
                                     >
                                         <Download className="w-4 h-4 mr-2" />
