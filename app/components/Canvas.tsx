@@ -104,40 +104,64 @@ export function Canvas({
             const ctx = canvas.getContext('2d');
             if (!ctx) throw new Error('Canvas context를 생성할 수 없습니다.');
 
-            const width = imageDimensions.width;
-            const height = imageDimensions.height;
-            canvas.width = width;
-            canvas.height = height;
+            // 원본 이미지 크기를 기준으로 aspectRatio 유지
+            const originalWidth = img.naturalWidth;
+            const originalHeight = img.naturalHeight;
+            
+            // 다운로드 크기는 고정하되, 비율은 유지
+            let canvasWidth = imageDimensions.width;
+            let canvasHeight = imageDimensions.height;
+            
+            // 원본 이미지와 canvas의 비율이 다르면 원본 이미지 비율로 조정
+            const originalRatio = originalWidth / originalHeight;
+            const targetRatio = canvasWidth / canvasHeight;
+            
+            // 비율을 맞추기 위해 canvas 크기 조정
+            if (Math.abs(originalRatio - targetRatio) > 0.01) {
+                // 원본 이미지의 비율을 유지하도록 canvas 조정
+                if (originalRatio > targetRatio) {
+                    // 원본이 더 넓음
+                    canvasHeight = Math.round(canvasWidth / originalRatio);
+                } else {
+                    // 원본이 더 좁음
+                    canvasWidth = Math.round(canvasHeight * originalRatio);
+                }
+            }
+            
+            canvas.width = canvasWidth;
+            canvas.height = canvasHeight;
+
+            console.log(`📏 Canvas 크기: ${canvasWidth}x${canvasHeight}, 원본 이미지: ${originalWidth}x${originalHeight}`);
 
             // 배경색 설정
             ctx.fillStyle = '#ffffff';
-            ctx.fillRect(0, 0, width, height);
+            ctx.fillRect(0, 0, canvasWidth, canvasHeight);
 
-            // 이미지 그리기
-            ctx.drawImage(img, 0, 0, width, height);
+            // 이미지 그리기 (원본 비율 유지)
+            ctx.drawImage(img, 0, 0, canvasWidth, canvasHeight);
 
             // 그라데이션 오버레이 (위에서 투명, 아래로 검은색)
-            const gradient = ctx.createLinearGradient(0, 0, 0, height);
+            const gradient = ctx.createLinearGradient(0, 0, 0, canvasHeight);
             gradient.addColorStop(0, 'rgba(0, 0, 0, 0)');
             gradient.addColorStop(0.6, 'rgba(0, 0, 0, 0.6)');
             gradient.addColorStop(1, 'rgba(0, 0, 0, 1)');
             ctx.fillStyle = gradient;
-            ctx.fillRect(0, 0, width, height);
+            ctx.fillRect(0, 0, canvasWidth, canvasHeight);
 
             // 텍스트 설정
-            const fontSize = Math.floor(width / 12); // 반응형 폰트 크기
+            const fontSize = Math.floor(canvasWidth / 12); // 반응형 폰트 크기
             ctx.font = `bold ${fontSize}px -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, sans-serif`;
             ctx.fillStyle = '#ffffff';
             ctx.textBaseline = 'bottom';
 
             // 텍스트 레이아웃 (아래 부분)
-            const padding = width / 16;
-            const maxWidth = width - padding * 2;
+            const padding = canvasWidth / 16;
+            const maxWidth = canvasWidth - padding * 2;
 
             // 텍스트 줄바꿈 처리
             const lines = selectedScene.headline.split('\n');
             const lineHeight = fontSize * 1.4;
-            let y = height - padding - lineHeight * (lines.length - 1);
+            let y = canvasHeight - padding - lineHeight * (lines.length - 1);
 
             // 그림자 처리
             ctx.shadowColor = 'rgba(0, 0, 0, 0.8)';
