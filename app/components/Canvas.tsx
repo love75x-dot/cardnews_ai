@@ -1,9 +1,10 @@
 'use client';
 
-import React, { useState } from 'react';
+import React, { useState, useRef } from 'react';
 import { Settings, Download, Loader2, BookOpen } from 'lucide-react';
 import { Button } from '@/components/ui/button';
 import { cn } from '@/lib/utils';
+import html2canvas from 'html2canvas';
 
 interface CardData {
     id: number;
@@ -35,6 +36,7 @@ export function Canvas({
     const hasCards = cards.length > 0;
     const selectedScene = hasCards ? cards[selectedIndex] : null;
     const [isDownloading, setIsDownloading] = useState(false);
+    const previewRef = useRef<HTMLDivElement>(null);
 
     // 비율에 따른 이미지 크기 계산
     const getImageDimensions = (ratio: string): { width: number; height: number } => {
@@ -71,6 +73,41 @@ export function Canvas({
 
         const fileName = `${topic}_${selectedScene.id}.png`;
         downloadImageDirect(selectedScene.imageUrl, fileName);
+    };
+
+    const handleDownloadCardImage = async () => {
+        if (!previewRef.current || !selectedScene) {
+            alert('다운로드할 이미지가 없습니다.');
+            return;
+        }
+
+        try {
+            setIsDownloading(true);
+            const canvas = await html2canvas(previewRef.current, {
+                backgroundColor: null,
+                scale: 2,
+                logging: false,
+                useCORS: true,
+            });
+
+            canvas.toBlob((blob) => {
+                if (blob) {
+                    const link = document.createElement('a');
+                    const url = URL.createObjectURL(blob);
+                    link.href = url;
+                    link.download = `${topic}_카드뉴스_${selectedScene.id}.png`;
+                    document.body.appendChild(link);
+                    link.click();
+                    document.body.removeChild(link);
+                    URL.revokeObjectURL(url);
+                }
+            });
+        } catch (error) {
+            console.error('카드 이미지 저장 실패:', error);
+            alert('카드 이미지 저장에 실패했습니다.');
+        } finally {
+            setIsDownloading(false);
+        }
     };
 
     const handleDownloadAll = async () => {
@@ -225,18 +262,12 @@ export function Canvas({
                         <div className="flex-1 bg-slate-950 flex items-center justify-center p-8 overflow-auto">
                             {selectedScene && (
                                 <div
+                                    ref={previewRef}
                                     style={{
                                         position: 'relative',
                                         maxWidth: '100%',
                                         width: `${Math.min(imageDimensions.width, 400)}px`,
                                         aspectRatio: imageDimensions.width / imageDimensions.height
-                                    }}
-                                    onContextMenu={(e) => {
-                                        if (selectedScene.imageUrl) {
-                                            e.preventDefault();
-                                            const fileName = `${topic}_${selectedScene.id}.png`;
-                                            downloadImageDirect(selectedScene.imageUrl, fileName);
-                                        }
                                     }}
                                 >
                                     {/* Main Image */}
@@ -297,11 +328,29 @@ export function Canvas({
                                     {/* Download Button */}
                                     <Button
                                         onClick={handleDownloadScene}
-                                        data-download-single
-                                        className="w-full bg-gradient-to-r from-purple-600 to-blue-600 hover:from-purple-700 hover:to-blue-700 text-white"
+                                        className="w-full bg-blue-600 hover:bg-blue-700 text-white"
                                     >
                                         <Download className="w-4 h-4 mr-2" />
-                                        이 장면만 다운로드
+                                        이미지만 다운로드
+                                    </Button>
+
+                                    {/* Download Card Image Button */}
+                                    <Button
+                                        onClick={handleDownloadCardImage}
+                                        disabled={isDownloading}
+                                        className="w-full bg-gradient-to-r from-purple-600 to-blue-600 hover:from-purple-700 hover:to-blue-700 text-white"
+                                    >
+                                        {isDownloading ? (
+                                            <>
+                                                <Loader2 className="w-4 h-4 mr-2 animate-spin" />
+                                                저장 중...
+                                            </>
+                                        ) : (
+                                            <>
+                                                <Download className="w-4 h-4 mr-2" />
+                                                카드뉴스 저장
+                                            </>
+                                        )}
                                     </Button>
                                 </div>
                             )}
