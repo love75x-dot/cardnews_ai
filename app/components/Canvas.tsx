@@ -104,21 +104,45 @@ export function Canvas({
             const ctx = canvas.getContext('2d');
             if (!ctx) throw new Error('Canvas context를 생성할 수 없습니다.');
 
-            // 사용자가 선택한 비율에 맞춰서 canvas 크기 설정
+            // 사용자가 선택한 비율
             const canvasWidth = imageDimensions.width;
             const canvasHeight = imageDimensions.height;
+            const targetRatio = canvasWidth / canvasHeight;
+            
+            // 원본 이미지 비율
+            const originalWidth = img.naturalWidth;
+            const originalHeight = img.naturalHeight;
+            const originalRatio = originalWidth / originalHeight;
+            
+            // 이미지를 선택된 비율에 맞춰서 센터 크롭
+            let sourceX = 0;
+            let sourceY = 0;
+            let sourceWidth = originalWidth;
+            let sourceHeight = originalHeight;
+            
+            if (originalRatio > targetRatio) {
+                // 원본이 더 넓음 (좌우 자르기)
+                sourceWidth = Math.round(originalHeight * targetRatio);
+                sourceX = Math.round((originalWidth - sourceWidth) / 2);
+            } else if (originalRatio < targetRatio) {
+                // 원본이 더 좁음 (위아래 자르기)
+                sourceHeight = Math.round(originalWidth / targetRatio);
+                sourceY = Math.round((originalHeight - sourceHeight) / 2);
+            }
             
             canvas.width = canvasWidth;
             canvas.height = canvasHeight;
 
-            console.log(`📏 Canvas 크기 (선택된 비율): ${canvasWidth}x${canvasHeight}`);
+            console.log(`📏 Canvas 크기: ${canvasWidth}x${canvasHeight}, 비율: ${targetRatio.toFixed(2)}`);
+            console.log(`🖼️ 원본 이미지: ${originalWidth}x${originalHeight}, 비율: ${originalRatio.toFixed(2)}`);
+            console.log(`✂️ 크롭 영역: x=${sourceX}, y=${sourceY}, w=${sourceWidth}, h=${sourceHeight}`);
 
             // 배경색 설정
             ctx.fillStyle = '#ffffff';
             ctx.fillRect(0, 0, canvasWidth, canvasHeight);
 
-            // 이미지 그리기 (선택된 비율에 맞춰서)
-            ctx.drawImage(img, 0, 0, canvasWidth, canvasHeight);
+            // 이미지 크롭해서 그리기
+            ctx.drawImage(img, sourceX, sourceY, sourceWidth, sourceHeight, 0, 0, canvasWidth, canvasHeight);
 
             // 그라데이션 오버레이 (위에서 투명, 아래로 검은색)
             const gradient = ctx.createLinearGradient(0, 0, 0, canvasHeight);
