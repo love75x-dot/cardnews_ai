@@ -1,9 +1,8 @@
 'use client';
 
-import React, { useRef, useState } from 'react';
+import React, { useState } from 'react';
 import { Settings, Download, Loader2, BookOpen } from 'lucide-react';
 import { Button } from '@/components/ui/button';
-import { downloadCard, downloadAllCards } from '@/lib/downloadUtils';
 import { cn } from '@/lib/utils';
 
 interface CardData {
@@ -35,7 +34,6 @@ export function Canvas({
 }: CanvasProps) {
     const hasCards = cards.length > 0;
     const selectedScene = hasCards ? cards[selectedIndex] : null;
-    const cardRefs = useRef<(HTMLElement | null)[]>([]);
     const [isDownloading, setIsDownloading] = useState(false);
 
     // 비율에 따른 이미지 크기 계산
@@ -55,45 +53,69 @@ export function Canvas({
 
     const imageDimensions = getImageDimensions(aspectRatio);
 
-    const handleDownloadScene = async () => {
-        if (!selectedScene) return;
-        const cardElement = cardRefs.current[selectedIndex];
-        if (!cardElement) return;
+    // 이미지를 다운로드하는 간단한 함수
+    const downloadImageDirect = (imageUrl: string, fileName: string) => {
+        const link = document.createElement('a');
+        link.href = imageUrl;
+        link.download = fileName;
+        document.body.appendChild(link);
+        link.click();
+        document.body.removeChild(link);
+    };
 
-        try {
-            const downloadButton = document.querySelector('[data-download-single]') as HTMLButtonElement;
-            if (downloadButton) {
-                downloadButton.disabled = true;
-            }
-            await downloadCard(cardElement, selectedScene.id, topic);
-        } catch (error) {
-            console.error('Download error:', error);
-            if (error instanceof Error) {
-                alert(error.message);
-            } else {
-                alert('다운로드 중 오류가 발생했습니다.');
-            }
-        } finally {
-            const downloadButton = document.querySelector('[data-download-single]') as HTMLButtonElement;
-            if (downloadButton) {
-                downloadButton.disabled = false;
-            }
+    const handleDownloadScene = () => {
+        if (!selectedScene || !selectedScene.imageUrl) {
+            alert('다운로드할 이미지가 없습니다.');
+            return;
         }
+
+        const fileName = `${topic}_${selectedScene.id}.png`;
+        downloadImageDirect(selectedScene.imageUrl, fileName);
     };
 
     const handleDownloadAll = async () => {
-        // The refs are populated by the hidden off-screen renderer
-        // so we should have all card elements here.
-        const validCards = cardRefs.current.filter((el): el is HTMLElement => el !== null);
-        if (validCards.length === 0) return;
+        if (cards.length === 0) return;
 
         setIsDownloading(true);
         try {
-            await downloadAllCards(validCards, topic);
-        } catch (error) {
-            if (error instanceof Error) {
-                alert(error.message);
+            const JSZip = (await import('jszip')).default;
+            const { saveAs } = await import('file-saver');
+            
+            const zip = new JSZip();
+            let successCount = 0;
+            let failedCount = 0;
+
+            for (const card of cards) {
+                try {
+                    if (card.imageUrl) {
+                        const response = await fetch(card.imageUrl);
+                        const blob = await response.blob();
+                        zip.file(`${topic}_${card.id}.png`, blob);
+                        successCount++;
+                    } else {
+                        failedCount++;
+                    }
+                } catch (error) {
+                    console.error(`카드 ${card.id} 다운로드 실패:`, error);
+                    failedCount++;
+                }
             }
+
+            if (successCount === 0) {
+                alert('다운로드할 이미지가 없습니다.');
+                return;
+            }
+
+            const zipBlob = await zip.generateAsync({ type: 'blob' });
+            saveAs(zipBlob, `${topic}_카드뉴스.zip`);
+            
+            const message = failedCount === 0 
+                ? `${successCount}개 이미지가 다운로드되었습니다.`
+                : `${successCount}개 이미지가 다운로드되었습니다. (실패: ${failedCount}개)`;
+            alert(message);
+        } catch (error) {
+            console.error('ZIP 생성 중 오류:', error);
+            alert('다운로드 중 오류가 발생했습니다.');
         } finally {
             setIsDownloading(false);
         }
@@ -101,109 +123,6 @@ export function Canvas({
 
     return (
         <main className="flex-1 flex flex-col overflow-hidden bg-[#050505]">
-            {/* Hidden container for rendering all cards for download */}
-            <div 
-                style={{ 
-                    position: 'fixed',
-                    left: '-9999px',
-                    top: '-9999px',
-                    width: `${imageDimensions.width}px`,
-                    opacity: 0,
-                    pointerEvents: 'none',
-                    zIndex: -9999
-                }}
-            >
-                {cards.map((card, index) => (
-                    <div
-                        key={`download-${card.id}`}
-                        ref={(el) => { cardRefs.current[index] = el; }}
-                        data-card-download
-                        style={{ 
-                            width: `${imageDimensions.width}px`, 
-                            height: `${imageDimensions.height}px`,
-                            position: 'relative',
-                            display: 'block',
-                            margin: '0',
-                            padding: '0',
-                            backgroundColor: '#ffffff'
-                        }}
-                    >
-                        {/* Main Image */}
-                        {card.imageUrl ? (
-                            <img
-                                src={card.imageUrl}
-                                alt={card.headline}
-                                crossOrigin="anonymous"
-                                style={{
-                                    position: 'absolute',
-                                    inset: '0',
-                                    width: '100%',
-                                    height: '100%',
-                                    objectFit: 'cover',
-                                    display: 'block'
-                                }}
-                            />
-                        ) : (
-                            <div style={{
-                                position: 'absolute',
-                                inset: '0',
-                                background: 'linear-gradient(to bottom right, rgba(88, 28, 135, 0.3), rgba(30, 27, 102, 0.3))'
-                            }} />
-                        )}
-
-                        {/* Text Overlay with Gradient */}
-                        <div style={{
-                            position: 'absolute',
-                            inset: '0',
-                            background: 'linear-gradient(to top, black, rgba(0, 0, 0, 0.6), transparent)'
-                        }} />
-
-                        {/* Text Content */}
-                        <div style={{
-                            position: 'absolute',
-                            bottom: '0',
-                            left: '0',
-                            right: '0',
-                            padding: '64px'
-                        }}>
-                            <h2 style={{
-                                color: 'white',
-                                fontSize: '48px',
-                                fontWeight: 'bold',
-                                lineHeight: '1.2',
-                                textShadow: '0 2px 4px rgba(0, 0, 0, 0.5)',
-                                margin: '0'
-                            }}>
-                                {card.headline}
-                            </h2>
-                        </div>
-
-                        {/* Page Number Badge */}
-                        <div style={{
-                            position: 'absolute',
-                            top: '32px',
-                            right: '32px',
-                            background: 'rgba(255, 255, 255, 0.2)',
-                            backdropFilter: 'blur(4px)',
-                            borderRadius: '50%',
-                            width: '80px',
-                            height: '80px',
-                            display: 'flex',
-                            alignItems: 'center',
-                            justifyContent: 'center',
-                            border: '2px solid rgba(255, 255, 255, 0.3)'
-                        }}>
-                            <span style={{
-                                color: 'white',
-                                fontWeight: 'bold',
-                                fontSize: '32px'
-                            }}>
-                                {card.id}
-                            </span>
-                        </div>
-                    </div>
-                ))}
-            </div>
             {/* Header with Download and Settings Buttons */}
             <div className="h-16 border-b border-slate-800 flex items-center justify-between px-6">
                 {/* Left: Download All Button (visible when cards exist) */}
@@ -311,6 +230,13 @@ export function Canvas({
                                         maxWidth: '100%',
                                         width: `${Math.min(imageDimensions.width, 400)}px`,
                                         aspectRatio: imageDimensions.width / imageDimensions.height
+                                    }}
+                                    onContextMenu={(e) => {
+                                        if (selectedScene.imageUrl) {
+                                            e.preventDefault();
+                                            const fileName = `${topic}_${selectedScene.id}.png`;
+                                            downloadImageDirect(selectedScene.imageUrl, fileName);
+                                        }
                                     }}
                                 >
                                     {/* Main Image */}
