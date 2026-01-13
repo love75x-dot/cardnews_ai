@@ -4,7 +4,6 @@ import React, { useState, useRef } from 'react';
 import { Settings, Download, Loader2, BookOpen } from 'lucide-react';
 import { Button } from '@/components/ui/button';
 import { cn } from '@/lib/utils';
-import html2canvas from 'html2canvas';
 
 interface CardData {
     id: number;
@@ -36,7 +35,6 @@ export function Canvas({
     const hasCards = cards.length > 0;
     const selectedScene = hasCards ? cards[selectedIndex] : null;
     const [isDownloading, setIsDownloading] = useState(false);
-    const previewRef = useRef<HTMLDivElement>(null);
 
     // 비율에 따른 이미지 크기 계산
     const getImageDimensions = (ratio: string): { width: number; height: number } => {
@@ -76,33 +74,93 @@ export function Canvas({
     };
 
     const handleDownloadCardImage = async () => {
-        if (!previewRef.current || !selectedScene) {
+        if (!selectedScene || !selectedScene.imageUrl) {
             alert('다운로드할 이미지가 없습니다.');
             return;
         }
 
         setIsDownloading(true);
         try {
-            console.log('🖼️ 카드뉴스 저장 시작...');
-            console.log('📌 대상 요소:', previewRef.current);
+            console.log('🖼️ 텍스트가 포함된 이미지 생성 시작...');
 
-            const canvas = await html2canvas(previewRef.current, {
-                backgroundColor: '#ffffff',
-                scale: 2,
-                logging: true,
-                useCORS: true,
-                allowTaint: true,
-                imageTimeout: 15000,
-                removeContainer: true,
+            // 이미지 로드
+            const img = new Image();
+            img.crossOrigin = 'anonymous';
+            
+            await new Promise((resolve, reject) => {
+                img.onload = () => {
+                    console.log('✅ 이미지 로드 완료:', img.width, 'x', img.height);
+                    resolve(null);
+                };
+                img.onerror = () => {
+                    console.error('❌ 이미지 로드 실패');
+                    reject(new Error('이미지를 로드할 수 없습니다.'));
+                };
+                img.src = selectedScene.imageUrl!;
             });
 
-            console.log('✅ Canvas 생성 완료:', canvas.width, 'x', canvas.height);
+            // Canvas 생성
+            const canvas = document.createElement('canvas');
+            const ctx = canvas.getContext('2d');
+            if (!ctx) throw new Error('Canvas context를 생성할 수 없습니다.');
 
-            // Canvas를 직접 Blob으로 변환
+            const width = imageDimensions.width;
+            const height = imageDimensions.height;
+            canvas.width = width;
+            canvas.height = height;
+
+            // 배경색 설정
+            ctx.fillStyle = '#ffffff';
+            ctx.fillRect(0, 0, width, height);
+
+            // 이미지 그리기
+            ctx.drawImage(img, 0, 0, width, height);
+
+            // 그라데이션 오버레이 (위에서 투명, 아래로 검은색)
+            const gradient = ctx.createLinearGradient(0, 0, 0, height);
+            gradient.addColorStop(0, 'rgba(0, 0, 0, 0)');
+            gradient.addColorStop(0.6, 'rgba(0, 0, 0, 0.6)');
+            gradient.addColorStop(1, 'rgba(0, 0, 0, 1)');
+            ctx.fillStyle = gradient;
+            ctx.fillRect(0, 0, width, height);
+
+            // 텍스트 설정
+            const fontSize = Math.floor(width / 12); // 반응형 폰트 크기
+            ctx.font = `bold ${fontSize}px -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, sans-serif`;
+            ctx.fillStyle = '#ffffff';
+            ctx.textBaseline = 'bottom';
+
+            // 텍스트 레이아웃 (아래 부분)
+            const padding = width / 16;
+            const maxWidth = width - padding * 2;
+
+            // 텍스트 줄바꿈 처리
+            const lines = selectedScene.headline.split('\n');
+            const lineHeight = fontSize * 1.4;
+            let y = height - padding - lineHeight * (lines.length - 1);
+
+            // 그림자 처리
+            ctx.shadowColor = 'rgba(0, 0, 0, 0.8)';
+            ctx.shadowBlur = 8;
+            ctx.shadowOffsetX = 2;
+            ctx.shadowOffsetY = 2;
+
+            lines.forEach((line) => {
+                // 긴 텍스트는 자동 줄바꿈
+                const wrappedLines = wrapText(ctx, line, maxWidth, fontSize);
+                wrappedLines.forEach((wrappedLine) => {
+                    ctx.fillText(wrappedLine, padding, y);
+                    y += lineHeight;
+                });
+            });
+
+            console.log('✅ Canvas 텍스트 그리기 완료');
+
+            // Blob으로 변환
             canvas.toBlob((blob) => {
                 try {
                     if (!blob) {
-                        throw new Error('Blob이 생성되지 않았습니다.');
+                        throw new Error('Blob 생성 실패');
                     }
 
                     console.log('✅ Blob 생성 완료:', blob.size, 'bytes');
@@ -126,14 +184,43 @@ export function Canvas({
                 }
             }, 'image/png');
         } catch (error) {
-            console.error('❌ 카드뉴스 저장 실패:', error);
+            console.error('❌ 이미지 생성 실패:', error);
             if (error instanceof Error) {
                 console.error('오류 메시지:', error.message);
-                console.error('오류 스택:', error.stack);
             }
             setIsDownloading(false);
-            alert('카드 이미지 저장에 실패했습니다.\n\n브라우저 콘솔(F12)에서 자세한 오류를 확인하세요.');
+            alert('카드뉴스 생성 중 오류가 발생했습니다.');
         }
+    };
+
+    // 텍스트 줄바꿈 헬퍼 함수
+    const wrapText = (
+        ctx: CanvasRenderingContext2D,
+        text: string,
+        maxWidth: number,
+        fontSize: number
+    ): string[] => {
+        const words = text.split('');
+        const lines: string[] = [];
+        let currentLine = '';
+
+        for (const word of words) {
+            const testLine = currentLine + word;
+            const metrics = ctx.measureText(testLine);
+
+            if (metrics.width > maxWidth && currentLine !== '') {
+                lines.push(currentLine);
+                currentLine = word;
+            } else {
+                currentLine = testLine;
+            }
+        }
+
+        if (currentLine !== '') {
+            lines.push(currentLine);
+        }
+
+        return lines.length > 0 ? lines : [text];
     };
 
     const handleDownloadAll = async () => {
@@ -288,7 +375,6 @@ export function Canvas({
                         <div className="flex-1 bg-slate-950 flex items-center justify-center p-8 overflow-auto">
                             {selectedScene && (
                                 <div
-                                    ref={previewRef}
                                     style={{
                                         position: 'relative',
                                         maxWidth: '100%',
