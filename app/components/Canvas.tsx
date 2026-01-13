@@ -104,40 +104,20 @@ export function Canvas({
             const ctx = canvas.getContext('2d');
             if (!ctx) throw new Error('Canvas context를 생성할 수 없습니다.');
 
-            // 원본 이미지 크기를 기준으로 aspectRatio 유지
-            const originalWidth = img.naturalWidth;
-            const originalHeight = img.naturalHeight;
-            
-            // 다운로드 크기는 고정하되, 비율은 유지
-            let canvasWidth = imageDimensions.width;
-            let canvasHeight = imageDimensions.height;
-            
-            // 원본 이미지와 canvas의 비율이 다르면 원본 이미지 비율로 조정
-            const originalRatio = originalWidth / originalHeight;
-            const targetRatio = canvasWidth / canvasHeight;
-            
-            // 비율을 맞추기 위해 canvas 크기 조정
-            if (Math.abs(originalRatio - targetRatio) > 0.01) {
-                // 원본 이미지의 비율을 유지하도록 canvas 조정
-                if (originalRatio > targetRatio) {
-                    // 원본이 더 넓음
-                    canvasHeight = Math.round(canvasWidth / originalRatio);
-                } else {
-                    // 원본이 더 좁음
-                    canvasWidth = Math.round(canvasHeight * originalRatio);
-                }
-            }
+            // 사용자가 선택한 비율에 맞춰서 canvas 크기 설정
+            const canvasWidth = imageDimensions.width;
+            const canvasHeight = imageDimensions.height;
             
             canvas.width = canvasWidth;
             canvas.height = canvasHeight;
 
-            console.log(`📏 Canvas 크기: ${canvasWidth}x${canvasHeight}, 원본 이미지: ${originalWidth}x${originalHeight}`);
+            console.log(`📏 Canvas 크기 (선택된 비율): ${canvasWidth}x${canvasHeight}`);
 
             // 배경색 설정
             ctx.fillStyle = '#ffffff';
             ctx.fillRect(0, 0, canvasWidth, canvasHeight);
 
-            // 이미지 그리기 (원본 비율 유지)
+            // 이미지 그리기 (선택된 비율에 맞춰서)
             ctx.drawImage(img, 0, 0, canvasWidth, canvasHeight);
 
             // 그라데이션 오버레이 (위에서 투명, 아래로 검은색)
