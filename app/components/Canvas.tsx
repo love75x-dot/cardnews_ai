@@ -81,20 +81,32 @@ export function Canvas({
             return;
         }
 
+        setIsDownloading(true);
         try {
-            setIsDownloading(true);
+            console.log('🖼️ 카드뉴스 저장 시작...');
+            console.log('📌 대상 요소:', previewRef.current);
+
             const canvas = await html2canvas(previewRef.current, {
                 backgroundColor: '#ffffff',
                 scale: 2,
-                logging: false,
+                logging: true,
                 useCORS: true,
                 allowTaint: true,
-                imageTimeout: 10000,
+                imageTimeout: 15000,
+                removeContainer: true,
             });
 
-            // Promise 기반으로 변경하여 blob 생성 완료 후 처리
+            console.log('✅ Canvas 생성 완료:', canvas.width, 'x', canvas.height);
+
+            // Canvas를 직접 Blob으로 변환
             canvas.toBlob((blob) => {
-                if (blob) {
+                try {
+                    if (!blob) {
+                        throw new Error('Blob이 생성되지 않았습니다.');
+                    }
+
+                    console.log('✅ Blob 생성 완료:', blob.size, 'bytes');
+
                     const link = document.createElement('a');
                     const url = URL.createObjectURL(blob);
                     link.href = url;
@@ -103,17 +115,24 @@ export function Canvas({
                     link.click();
                     document.body.removeChild(link);
                     URL.revokeObjectURL(url);
+
+                    console.log('✅ 다운로드 완료');
+                    alert('카드뉴스가 저장되었습니다.');
+                } catch (blobError) {
+                    console.error('❌ Blob 처리 오류:', blobError);
+                    alert('이미지 저장에 실패했습니다.');
+                } finally {
                     setIsDownloading(false);
-                    console.log('카드뉴스 이미지 저장 완료');
-                } else {
-                    setIsDownloading(false);
-                    alert('이미지 생성에 실패했습니다.');
                 }
             }, 'image/png');
         } catch (error) {
-            console.error('카드 이미지 저장 실패:', error);
+            console.error('❌ 카드뉴스 저장 실패:', error);
+            if (error instanceof Error) {
+                console.error('오류 메시지:', error.message);
+                console.error('오류 스택:', error.stack);
+            }
             setIsDownloading(false);
-            alert('카드 이미지 저장에 실패했습니다.\n브라우저 콘솔(F12)에서 자세한 오류를 확인하세요.');
+            alert('카드 이미지 저장에 실패했습니다.\n\n브라우저 콘솔(F12)에서 자세한 오류를 확인하세요.');
         }
     };
 
