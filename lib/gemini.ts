@@ -31,7 +31,11 @@ export async function generateCardNewsContent(
         flat: "Flat Design style with bold colors, simple shapes, 2D illustration with clean lines and geometric patterns",
         '3d': "3D Rendered style with soft lighting, smooth surfaces, isometric perspective, modern 3D illustration",
         watercolor: "Watercolor painting style with soft edges, flowing colors, artistic brush strokes, dreamy atmosphere",
-        illustration: "Hand-drawn illustration style with detailed line work, vibrant colors, artistic sketchy feel"
+        illustration: "Hand-drawn illustration style with detailed line work, vibrant colors, artistic sketchy feel",
+        editorial: "Editorial design style with sophisticated layout, high contrast, professional magazine aesthetic, bold typography elements",
+        infographic: "Infographic style with data visualization, icons, charts, symbols, clear hierarchical structure, professional presentation",
+        'neo-brutalism': "Neo Brutalism design style with raw geometric shapes, bold colors, asymmetrical layout, unconventional visual structure, dramatic contrast",
+        typography: "Typography-focused design style with emphasis on text and letterforms, creative font treatments, minimalist visual elements, type-driven composition"
     };
 
     const selectedStyle = stylePrompts[artStyle] || stylePrompts['modern'];

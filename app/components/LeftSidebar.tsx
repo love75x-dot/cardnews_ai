@@ -243,6 +243,10 @@ export function LeftSidebar({
                                 <SelectItem value="3d">3D 렌더</SelectItem>
                                 <SelectItem value="watercolor">수채화</SelectItem>
                                 <SelectItem value="illustration">일러스트</SelectItem>
+                                <SelectItem value="editorial">에디토리얼</SelectItem>
+                                <SelectItem value="infographic">인포그래픽</SelectItem>
+                                <SelectItem value="neo-brutalism">네오 브루탈리즘</SelectItem>
+                                <SelectItem value="typography">타이포그래피</SelectItem>
                             </SelectContent>
                         </Select>
                     </div>
