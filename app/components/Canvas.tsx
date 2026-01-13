@@ -5,7 +5,14 @@ import { Settings, Download, Loader2, BookOpen } from 'lucide-react';
 import { Button } from '@/components/ui/button';
 import { downloadCard, downloadAllCards } from '@/lib/downloadUtils';
 import { cn } from '@/lib/utils';
-import type { CardData } from '../page';
+
+interface CardData {
+    id: number;
+    headline: string;
+    text: string;
+    imagePrompt?: string;
+    imageUrl?: string;
+}
 
 interface CanvasProps {
     cards: CardData[];
@@ -39,7 +46,7 @@ export function Canvas({
             if (downloadButton) {
                 downloadButton.disabled = true;
             }
-            await downloadCard(cardElement, selectedScene.page, topic);
+            await downloadCard(cardElement, selectedScene.id, topic);
         } catch (error) {
             console.error('Download error:', error);
             if (error instanceof Error) {
@@ -79,7 +86,7 @@ export function Canvas({
             <div className="absolute -left-[9999px] -top-[9999px]">
                 {cards.map((card, index) => (
                     <div
-                        key={card.page}
+                        key={card.id}
                         ref={(el) => { cardRefs.current[index] = el; }}
                         className="relative"
                         style={{ width: '1024px', height: '1024px' }} // Use a fixed high-res size for download
@@ -108,7 +115,7 @@ export function Canvas({
 
                         {/* Page Number Badge */}
                         <div className="absolute top-8 right-8 bg-white/20 backdrop-blur-sm rounded-full w-20 h-20 flex items-center justify-center border-2 border-white/30">
-                            <span className="text-white font-bold text-3xl">{card.page}</span>
+                            <span className="text-white font-bold text-3xl">{card.id}</span>
                         </div>
                     </div>
                 ))}
@@ -181,7 +188,7 @@ export function Canvas({
                         <div className="w-60 border-r border-slate-800 overflow-y-auto bg-slate-900">
                             {cards.map((card, index) => (
                                 <div
-                                    key={card.page}
+                                    key={card.id}
                                     onClick={() => onSceneSelect(index)}
                                     className={cn(
                                         "p-4 cursor-pointer hover:bg-slate-800/50 transition-colors border-b border-slate-800",
@@ -193,14 +200,14 @@ export function Canvas({
                                         {card.imageUrl && (
                                             <img
                                                 src={card.imageUrl} // Using imageUrl for thumbnail
-                                                alt={`Scene ${card.page}`}
+                                                alt={`Scene ${card.id}`}
                                                 className="w-full h-full object-cover"
                                             />
                                         )}
                                     </div>
 
                                     {/* Scene Info */}
-                                    <div className="text-xs text-gray-400">Scene {card.page}</div>
+                                    <div className="text-xs text-gray-400">Scene {card.id}</div>
                                     <div className="text-sm text-white line-clamp-2 mt-1">{card.headline}</div>
                                 </div>
                             ))}
@@ -235,7 +242,7 @@ export function Canvas({
 
                                     {/* Page Number Badge */}
                                     <div className="absolute top-4 right-4 bg-white/20 backdrop-blur-sm rounded-full w-12 h-12 flex items-center justify-center border border-white/30">
-                                        <span className="text-white font-bold text-lg">{selectedScene.page}</span>
+                                        <span className="text-white font-bold text-lg">{selectedScene.id}</span>
                                     </div>
                                 </div>
                             )}
@@ -251,7 +258,7 @@ export function Canvas({
                                             📄 스크립트
                                         </h3>
                                         <div className="bg-slate-800 rounded-lg p-3 text-sm text-gray-300 leading-relaxed">
-                                            {selectedScene.script}
+                                            {selectedScene.text}
                                         </div>
                                     </div>
 
