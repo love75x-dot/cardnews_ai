@@ -27,6 +27,8 @@ interface LeftSidebarProps {
     onResolutionChange: (value: string) => void;
     artStyle: string;
     onArtStyleChange: (value: string) => void;
+    backgroundStyle: string;
+    onBackgroundStyleChange: (value: string) => void;
     referenceEnabled: boolean;
     onReferenceEnabledChange: (value: boolean) => void;
     referenceMode: string;
@@ -50,6 +52,8 @@ export function LeftSidebar({
     onResolutionChange,
     artStyle,
     onArtStyleChange,
+    backgroundStyle,
+    onBackgroundStyleChange,
     referenceEnabled,
     onReferenceEnabledChange,
     referenceMode,
@@ -250,6 +254,29 @@ export function LeftSidebar({
                             </SelectContent>
                         </Select>
                     </div>
+
+                    {/* Background Style (only show if reference mode is 'product') */}
+                    {referenceMode === 'product' && (
+                        <div className="space-y-2">
+                            <Label htmlFor="background-style" className="text-sm font-medium text-gray-300">
+                                배경 스타일
+                            </Label>
+                            <Select value={backgroundStyle} onValueChange={onBackgroundStyleChange}>
+                                <SelectTrigger id="background-style" className="bg-slate-800 border-slate-700 text-white">
+                                    <SelectValue />
+                                </SelectTrigger>
+                                <SelectContent className="bg-[#1a1b26] border-[#27272a] text-white">
+                                    <SelectItem value="studio">스튜디오</SelectItem>
+                                    <SelectItem value="cafe">카페</SelectItem>
+                                    <SelectItem value="nature">자연</SelectItem>
+                                    <SelectItem value="modern">현대</SelectItem>
+                                    <SelectItem value="minimal">미니멀</SelectItem>
+                                    <SelectItem value="luxury">럭셔리</SelectItem>
+                                    <SelectItem value="vintage">빈티지</SelectItem>
+                                </SelectContent>
+                            </Select>
+                        </div>
+                    )}
                 </div>
 
                 {/* Info Box */}

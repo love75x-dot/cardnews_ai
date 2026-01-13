@@ -41,6 +41,7 @@ export default function Home() {
   // Advanced parameters
   const [resolution, setResolution] = useState('2k');
   const [artStyle, setArtStyle] = useState('modern');
+  const [backgroundStyle, setBackgroundStyle] = useState('studio');
   const [referenceEnabled, setReferenceEnabled] = useState(false);
   const [referenceMode, setReferenceMode] = useState('style');
   const [referenceImages, setReferenceImages] = useState<Array<{ id: string; url: string; file: File; base64?: string }>>([]);
@@ -229,6 +230,8 @@ export default function Home() {
         onResolutionChange={setResolution}
         artStyle={artStyle}
         onArtStyleChange={setArtStyle}
+        backgroundStyle={backgroundStyle}
+        onBackgroundStyleChange={setBackgroundStyle}
         referenceEnabled={referenceEnabled}
         onReferenceEnabledChange={setReferenceEnabled}
         referenceMode={referenceMode}
